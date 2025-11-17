@@ -1,4 +1,5 @@
 function p = parameters_ameralik
+p = default_parameters;
 
 % DEFAULT_PARAMETERS Loads default parameters for FjordRPM.
 %   p = DEFAULT_PARAMETERS sets the default box model parameters. The 
@@ -17,26 +18,8 @@ p.Hsill = 110; % sill depth below surface (m), only used if p.sill=1
 p.Hgl = 0; % grounding line depth (m)
 p.Wp = 0; % subglacial discharge plume width (m)
 
-% maybe import them from default
 
-% physical constants - these should not be changed in general
-p.g = 9.81;        % gravity (ms^-2)
-p.betaS = 7.86e-4; % haline contraction (ppt^-1)
-p.betaT = 3.87e-5; % thermal expansion (degC^-1)
-p.l = 3.35e5;      % latent heat (J kg^-1)
-p.cw = 3974;       % water heat capacity (J kg^-1 degC^-1)
-p.ci = 2009;       % ice heat capacity (J kg^-1 degC^-1)
-p.l1 = -5.73e-2;   % dependence of freezing point on salinity (degC ppt^-1)
-p.l2 = 8.32e-2;    % freezing point offset (degC)
-p.l3 = -7.61e-4;   % dependence of freezing point on depth (degC m^-1)
-p.GT = 2.2e-2;     % thermal transfer coefficient (-)
-p.GS = 6.2e-4;     % saline transfer coefficient (-)
-p.Cd = 2.5e-3;     % drag coefficient (-)
-p.Ti = -10;        % ice temperature (degC)
-p.alphai = 0.1;    % iceberg plume entrainment coefficient (-)
-p.alphap = 0.1;    % discharge plume entrainment coefficient (-)
-p.rhoref = 1027;   % reference density for air-sea heat flux
-p.sid = 86400;     % seconds in a day (useful to have)
+
 
 % controlling parameters
 p.Wp = 250;        % plume width (m)

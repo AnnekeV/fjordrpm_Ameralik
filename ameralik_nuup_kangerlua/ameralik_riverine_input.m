@@ -12,7 +12,7 @@ addpath(genpath(path2sourcecode));
 
 % get basic constants and default controlling parameters
 p = parameters_ameralik;
-p.Kb = 1e-5; % vertical mixing
+p.Kb = 1e-4; % vertical mixing
 
 % can adjust any of the default parameters afterwards if needed
 % p.C0 = 5e4; % for example adjust shelf exchange parameter
@@ -63,11 +63,12 @@ p.kairsea = 0; % to turn off surface heat fluxes
 % f.ts must have dimensions 1 x nt
 % f.zs must have dimensions nz x 1
 % f.Ss and f.Ts must have dimensions nz x nt
-f.ts = [0,t_end]; % time vector for shelf forcing
 f.ts = f.tsurf;
-f.zs = [-p.H;0]; % depth vector for shelf forcing (negative below surface)
-f.Ss = 34*ones(length(f.zs),length(f.ts)); % shelf salinity on (zs,ts)
-f.Ts = 3*ones(length(f.zs),length(f.ts)); % shelf temperature on (zs,ts)
+% import mean shelf profile from ameralik_mean_shelf_profile.mat
+load('ameralik_mean_shelf_profile.mat'); % load mean shelf profile data
+f.zs = meanzs; % assign shelf depth profile to f.zs
+f.Ss = meanSs * ones(1,length(f.ts)); % shelf salinity on (zs,ts)
+f.Ts = meanTs * ones(1,length(f.ts)); % shelf temperature on (zs,ts)
 
 % no subglacial discharge because no marine-terminating glacier
 % f.tsg must have dimensions 1 x nt
@@ -89,11 +90,12 @@ s = run_model(p, t, f, a);
 % save the output
 save ameralik_riverine_input.mat s p t f a
 
+% make basic plots of the output
+plotrpm(p,s,50);
+
 % make an animation of the output (takes a few minutes)
 % animate(p,s,50,'ameralik_riverine_input');
 
-% make basic plots of the output
-plotrpm(p,s,50);
 
 
 
