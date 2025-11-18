@@ -12,6 +12,7 @@ path2sourcecode = '/Users/annek/Documents/fjordrpm/';
 addpath(genpath(path2sourcecode));
 
 % get basic constants and default controlling parameters
+p = default_parameters;
 p = parameters_ameralik;
 
 % can adjust any of the default parameters afterwards if needed
@@ -40,6 +41,7 @@ f.Ta = -10+25*exp(-((mod(f.tsurf,365)-182)/75).^2); % air temperature
 p.kairsea = 0; % to turn off surface heat fluxes
 
 
+
 % set up shelf forcing
 % here make it an exponential profile that shoals and deepens every 10 days
 % f.ts must have dimensions 1 x nt
@@ -48,7 +50,7 @@ p.kairsea = 0; % to turn off surface heat fluxes
 % Load external profile data from a CSV file
 % profiles from GF13 in 2019 (in front of sill)
 folder_profiles = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/CTDs/';
-individual_profiles = {'20190123_HS190123', '20190213_HS190213', '20190328_HS190328', ...
+individual_profiles = {'20181217_HS181217', '20190123_HS190123', '20190213_HS190213', '20190328_HS190328', ...
     '20190423_HS190423', '20190514_HS190514', '20190521_HS190521', '20190619_HS190619', ...
     '20190716_HS190716', '20190819_HS190819', '20190916_GF19131', '20190924_HS190924', ...
     '20191022_HS191022', '20191120_HS191120', '20191209_HS191209'}; % make sure they are sorted
@@ -82,7 +84,7 @@ for k=1:length(individual_profiles),
     f.Ts(:,k) = temperature;
     f.ts(k) = time_CTD;
 end
-% f.ts(1) =0; % see if this fixes anything (AV, 12Nov25 17:20 yes) % will need to change t
+f.ts(1) =0; % see if this fixes anything (AV, 12Nov25 17:20 yes) % will need to change t
 
 if length(individual_profiles) ==1;
     f.Ss(:,2) = salinity;
@@ -114,13 +116,52 @@ a.I0 = 0*a.H0;
 s = run_model(p, t, f, a);
 
 % save the output
-save example_amereralik.mat s p t f a
+save amereralik_shelf_forcing.mat s p t f a
 
 % make an animation of the output (takes a few minutes)
-% animate(p,s,50,'example_ameralik');
+% % animate(p,s,50,'amereralik_shelf_forcing');
 
 % make basic plots of the output
-plotrpm(p,s,30);
+% plotrpm(p,s,30);
+
+plot_title = "Model summary Ameralik Shelf Forcing"
+% replace spaces in plottitle by "_"
+plot_title_no_space = strrep(plot_title, ' ', '_');
+
+plotrpm_no_glacier(p,s,a, 25, plot_title)
+
+% Save files
+fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
+    plot_title_no_space);
+exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
+
+
+% %% Save mean shelf profile
+% 
+% % 1. compute means (rows of s.Ts and s.Ss)
+% meanTs = mean(s.Ts, 2, 'omitnan');   % Nx1
+% meanSs = mean(s.Ss, 2, 'omitnan');   % Nx1
+% 
+% % 2. ensure s.z exists and has same length (if not, adjust)
+% z = s.z; % column vector of depths (Nx1)
+% meanzs = s.z;
+% 
+% % 3. create table
+% T_mean = table(z(:), meanTs(:), meanSs(:), ...
+%               'VariableNames', {'z','meanTs_C','meanSs_psu'}); % adjust names/units
+% 
+% % 4. prepare output directory and file names
+% outdir = "/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed";
+% 
+% % 5. save as MAT (store variables)
+% outfile_mat = fullfile("ameralik_mean_shelf_profile.mat");
+% save(outfile_mat, 'T_mean', 'meanTs', 'meanSs', 'meanzs')
+% 
+% % 6. export table to CSV
+% outfile_csv = fullfile(outdir, "Shelf_mean_Ameralik.csv");
+% writetable(T_mean, outfile_csv);
+
+
 
 
 

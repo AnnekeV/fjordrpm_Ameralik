@@ -23,7 +23,13 @@ p.Kb = 1e-4; % vertical mixing
 p.N = 80; % number of layers
 a.H0 = (p.H/p.N)*ones(p.N,1); % layer thicknesses, here taken to be equal
 
-
+% set up time stepping
+dt = 0.2; % time step (in days)
+% set up surface forcing - surface freshwater input
+t_start = datenum(datetime(2019,1, 1));
+t_end = datenum(datetime(2019,12,31));
+t = t_start:dt:t_end; % resulting time vector for simulation
+p.t_save = 0:1:t_end; % times on which to save output
 
 % Read CSV into table
 % monthly data, so 12 data points
@@ -34,25 +40,25 @@ T_Tundra_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLib
 T_GIC =    T_GIC_15_19(year(T_GIC_15_19.time) == 2019, :);  % select 2019
 T_GrIS =   T_GrIS_15_19(year(T_GrIS_15_19.time) == 2019, :);  % select 2019
 T_Tundra = T_Tundra_15_19(year(T_Tundra_15_19.time) == 2019, :);  % select 2019
+T_total_runoff =  (T_GIC.runoff_m3_s + T_GrIS.runoff_m3_s + T_Tundra.runoff_m3_s);
 
-
-
-% set up time stepping
-dt = 0.2; % time step (in days)
-% set up surface forcing - surface freshwater input
-f.tsurf = datenum(T_GIC.time).';
-nt = numel(f.tsurf);
-assert(isequal(size(f.tsurf), [1 nt]), 'f.tsurf must be 1 x nt');
-t_start = f.tsurf(1);
-t_end = f.tsurf(end); % time to end the simulation (in days)
-t = t_start:dt:t_end; % resulting time vector for simulation
-p.t_save = 0:1:t_end; % times on which to save output
+% extend freshwater time series so can be run for a year
+T_total = T_total_runoff(:);        % Nx1 numeric
+t_surf = datenum(T_GIC.time(:)).'; % 1xN or Nx1 -> row later
+T_total = T_total(:).';             % 1xN
+t_surf = t_surf(:).';               % 1xN
+T_total_ext = [T_total(1), T_total, T_total(end)];   % prepend first value and append last value
+dt = median(diff(t_surf)); % infer spacing for times: use median diff to be robust for nonuniform grids
+t_surf_ext = [t_surf(1)-dt, t_surf, t_surf(end)+dt]; % prepend one time before first, append one after last
+f.Qr = T_total_ext;           % 1 x (N+2)
+f.tsurf = t_surf_ext;         % 1 x (N+2)
+% If you want to keep column orientation instead:
+f.Qr = T_total_ext(:).';
+f.tsurf = t_surf_ext(:).';
 
 % Assign runoff column
-f.Qr = (T_GIC.runoff_m3_s + T_GrIS.runoff_m3_s + T_Tundra.runoff_m3_s).'; % riverine input on ta
-f.tsurf = f.tsurf;   % transpose time vector for surface forcing
-
-
+% f.Qr = T_total.'; % riverine input on ta
+% f.tsurf = datenum(T_GIC.time).' ;%  'f.tsurf must be 1 x nt')
 f.Tr = 0*f.tsurf; % temperature of riverine input
 f.Sr = 0*f.tsurf; % salinity of riverine input
 f.Ta = 0*f.tsurf; % air temperature
@@ -88,7 +94,7 @@ a.I0 = 0*a.H0;
 s = run_model(p, t, f, a);
 
 % save the output
-save ameralik_riverine_input.mat s p t f a
+% save ameralik_riverine_input.mat s p t f a
 
 % make basic plots of the output
 plotrpm(p,s,50);
@@ -98,5 +104,11 @@ plotrpm(p,s,50);
 
 
 
+plotrpm_no_glacier(p,s,a, 25)
+
+% Save files
+fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
+    'model_summary_ameralik_riverine_input');   
+exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
 
 
