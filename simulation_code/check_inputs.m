@@ -23,6 +23,8 @@ end
 % check dimensionality of shelf forcing
 nz = length(f.zs);
 nt = length(f.ts);
+disp(['nt =  ' num2str(nt)])
+
 % f.ts
 if ~isequal(size(f.ts),[1,nt])
     error('f.ts must have dimensions 1 x nt');

@@ -55,12 +55,12 @@ cbColors = [
 
 s.date = datetime(s.t, "ConvertFrom", "datenum");
 
-figure; hold on;
+fig = figure; hold on;
 % fjord FW content
 plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 0, 50), 'DisplayName', 'Model Fjord: 0-50 m', 'Color', cbColors(1,:));
 plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 50, 200),  'DisplayName', 'Model Fjord: 50-200 m', 'Color',cbColors(2,:));
 hold on;
-plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 200, 500),  'DisplayName', 'Model Fjord: 200-500 m', 'Color',cbColors(3,:));
+% plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 200, 500),  'DisplayName', 'Model Fjord: 200-500 m', 'Color',cbColors(3,:));
 
 % 
 % % shelf FW content
@@ -75,7 +75,7 @@ plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 200, 500),  'DisplayName', 'Model 
 Ameralik_mean.dz = ones(size(Ameralik_mean.depths));
 
 % Define depth ranges and labels for observational
-depth_ranges = [0 50; 50 200; 200 500];
+depth_ranges = [0 50; 50 200];
 labels = {'Observations: 0-50 m', 'Obervations: 50-200 m', 'Observations: 200-500 m'};
 
 
@@ -84,7 +84,7 @@ for k = 1:size(depth_ranges,1)
     
     % Compute FW content
     FW = fw_content(Ameralik_mean.S, Ameralik_mean.depths * -1, Ameralik_mean.dz, ...
-        33.3, depth_ranges(k,1), depth_ranges(k,2));
+        Sref, depth_ranges(k,1), depth_ranges(k,2));
     
     % Remove NaNs and corresponding dates
     FW_valid = FW(~isnan(FW));
@@ -105,3 +105,16 @@ ylabel('FW content (m)');
 % title('Freshwater Content per Depth Range with S_{ref} =' + Sref(1))
 legend('Location','best');
 grid on;
+
+% -------------------------
+% Save figure as PNG
+% -------------------------
+saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/comparison_obs_model_timeseries';
+
+filename = fullfile(saveFolder, ['Comparison_FW_content.png']);
+exportgraphics(fig, filename, ...
+    'BackgroundColor', 'white', ...
+    'Resolution', 600,...
+    'ContentType', 'image', ...
+    'Width',  1000, ...
+    'Height', 600);
