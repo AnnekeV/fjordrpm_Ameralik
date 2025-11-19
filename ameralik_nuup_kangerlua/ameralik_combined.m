@@ -14,7 +14,7 @@ addpath(genpath(path2sourcecode));
 % get basic constants and default controlling parameters
 p = default_parameters;
 p = parameters_ameralik;
-p.Kb = 1e-5; % vertical mixing
+p.Kb = 1e-4; % vertical mixing
 
 % can adjust any of the default parameters afterwards if needed
 % p.C0 = 5e4; % for example adjust shelf exchange parameter
@@ -149,9 +149,13 @@ f.zs = depth'; % depth vector for shelf forcing (negative below surface)
 f.tsg = t; % time vector for subglacial discharge
 f.Qsg = 0*f.tsg; % subglacial discharge on tsg
 
-% fjord initial conditions
-% set up to be same as initial shelf profiles
+% % fjord initial conditions
+% % set up to be same as initial shelf profiles
 [a.T0, a.S0] = bin_shelf_profiles(f.Ts(:,1), f.Ss(:,1), f.zs, a.H0);
+
+% constant profile for S and T
+a.T0 =  ones(size(a.T0)) * 0.1;   % constant profile
+a.S0 =  ones(size(a.S0)) * 33.6;   % constant profile
 
 % set up icebergs - in this example there are no icebergs
 a.I0 = 0*a.H0;
@@ -161,23 +165,23 @@ a.I0 = 0*a.H0;
 s = run_model(p, t, f, a);
 
 % save the output
-% save amereralik_combined.mat s p t f a
+save ameralik_combined_set_fjord_initial.mat s p t f a
 
 
 
 
 % % 
 % % make an animation of the output (takes a few minutes)
-% animate(p,s,100,'ameralik_combined_Kb_1e5');
+% animate(p,s,50,'ameralik_combined_initial_fjord');
 
 
 
-% make basic plots of the output
-% plotrpm(p,s,10);
+% % make basic plots of the output
+% plotrpm(p,s,25);
 
-title=  'model_summary_ameralik_combined_Kb_1e5';
+title=  'Model Summary Ameralik Combi Initial fjord';
 plotrpm_no_glacier(p,s,a, 25,  title)
-% Save files
-fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
-   title);
+% % % Save files
+% fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
+%    strrep(title, ' ', '_'));
 % exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
