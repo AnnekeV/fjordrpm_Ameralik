@@ -22,7 +22,7 @@ end
 
 
 
-load('ameralik_combined_set_fjord_initial.mat'); 
+load('ameralik_combined_with_spinup.mat'); 
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
 
 
@@ -60,7 +60,7 @@ fig = figure; hold on;
 plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 0, 50), 'DisplayName', 'Model Fjord: 0-50 m', 'Color', cbColors(1,:));
 plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 50, 200),  'DisplayName', 'Model Fjord: 50-200 m', 'Color',cbColors(2,:));
 hold on;
-% plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 200, 500),  'DisplayName', 'Model Fjord: 200-500 m', 'Color',cbColors(3,:));
+plot(s.date, fw_content(s.S, s.z, a.H0, Sref, 200, 500),  'DisplayName', 'Model Fjord: 200-500 m', 'Color',cbColors(3,:));
 
 % 
 % % shelf FW content
@@ -98,6 +98,7 @@ for k = 1:size(depth_ranges,1)
 
 end
 
+legend('Location','best')
 
 
 
@@ -118,3 +119,13 @@ exportgraphics(fig, filename, ...
     'ContentType', 'image', ...
     'Width',  1000, ...
     'Height', 600);
+
+
+figure;
+pcolor(s.date, s.z, s.S); 
+shading interp;               % Smooth color shading
+colorbar;
+xlabel('Date');
+ylabel('Depth (m)');
+title('Salinity (S)');
+datetick('x','keeplimits');
