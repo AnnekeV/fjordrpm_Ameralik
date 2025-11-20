@@ -65,8 +65,8 @@ end
 s.V = s.H*p.W*p.L;
 
 % layer centres (useful to have at various points in the code)
-ints = -[0;cumsum(s.H(:,1))];
-s.z = 0.5*(ints(1:end-1)+ints(2:end));
+layer_boundaries=[0;-cumsum(a.H0)] ;
+s.z = (layer_boundaries(2:end)+layer_boundaries(1:end-1))/2;
 
 %% model forcings
 
