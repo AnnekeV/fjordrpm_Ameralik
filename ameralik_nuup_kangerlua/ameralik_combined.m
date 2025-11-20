@@ -14,29 +14,33 @@ addpath(genpath(path2sourcecode));
 % get basic constants and default controlling parameters
 p = default_parameters;
 p = parameters_ameralik;
-p.Kb = 1e-4; % vertical mixing
-
-% can adjust any of the default parameters afterwards if needed
-% p.C0 = 5e4; % for example adjust shelf exchange parameter
-% p.run_plume_every = 10; % or update plume model only every 10 time steps
-
+p.Kb = 1e-5; % vertical mixing
 
 % set up model layers
+H_layer_deep  = 10;  % layer thickness deeper in fjord
+a.H0 = [[1, 1, 2, 3, 5, 8 ].'; H_layer_deep*ones(((p.H-20)/10),1)];   % layer thicknesses
+p.N = length(a.H0); % number of layers
 p.N = 80; % number of layers
 a.H0 = (p.H/p.N)*ones(p.N,1); % layer thicknesses, here taken to be equal
 
 
+
 % set up time stepping
 dt = 0.2; % time step (in days)
-% set up surface forcing - surface freshwater input
-t_start = datenum(datetime(2019,1, 1));
+t_start = datenum(datetime(2018,1,1));
 t_end = datenum(datetime(2019,12,31));
 t = t_start:dt:t_end; % resulting time vector for simulation
-p.t_save = 0:1:t_end; % times on which to save output
+p.t_save = t_start:1:t_end; % times on which to save output
+
+% load initial profile Ameralik (first run open_previous_ctd.m)
+% Save the structure to a MAT-file
+saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
+load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 
 
 
-% read meteo data and select 2019 
+
+% read meteo data and select 2018 - 2019 
 % DMI
 T_temp = readtable("/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/Data/Weather data/DMI/425000.csv", ...
     'Delimiter', ';', 'ReadVariableNames', true, 'VariableNamingRule', 'preserve');
@@ -49,47 +53,40 @@ t_forc_date = datetime( T_temp.Year, ...
                         T_temp.Hour_utc, ...
                         0, 0 );
 T_temp.time = t_forc_date  ;
-T_temp =    T_temp(year(T_temp.time) == 2019, :);  % select 2019
+% Define mask for 2018–2019 (anonymous function with datetime input)
+mask1819 = @(time) (year(time)==2018 | year(time)==2019);
+T_temp = T_temp(mask1819(T_temp.time), :);
 Ta = T_temp.temperature;
 f.Ta = Ta.'; % air temperature
-
-% set up time stepping
-t_forc = datenum(T_temp.time).';
-t_start = t_forc(1);
-t_end = t_forc(end);
-dt = 0.2; % time step (in days)
-t = t_start:dt:t_end; % resulting time vector for simulation
-p.t_save = 0:1:t_end; % times on which to save output
-f.tsurf = t_forc; % time vector for surface forcing
-
-
+f.tsurf = datenum(T_temp.time).'; % time vector for surface forcing
 
 
 % Read CSV into table
-% monthly data, so 12 data points
+% monthly data,
+% then select appropriate times eries
 T_GIC_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_gic_runoff_2015_2020.csv');
 T_GrIS_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_gris_runoff_2015_2020.csv');
 T_Tundra_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_tundra_runoff_2015_2020.csv');
 
-T_GIC =    T_GIC_15_19(year(T_GIC_15_19.time) == 2019, :);  % select 2019
-T_GrIS =   T_GrIS_15_19(year(T_GrIS_15_19.time) == 2019, :);  % select 2019
-T_Tundra = T_Tundra_15_19(year(T_Tundra_15_19.time) == 2019, :);  % select 2019
-T_total_runoff =  (T_GIC.runoff_m3_s + T_GrIS.runoff_m3_s + T_Tundra.runoff_m3_s);
+T_GIC =    T_GIC_15_19(mask1819(T_GIC_15_19.time), :); 
+T_GrIS =   T_GrIS_15_19(mask1819(T_GrIS_15_19.time), :); 
+T_Tundra = T_Tundra_15_19(mask1819(T_Tundra_15_19.time), :);  
+runoff =  (T_GIC.runoff_m3_s + T_GrIS.runoff_m3_s + T_Tundra.runoff_m3_s);
 
 % extend freshwater time series so can be run for a year
-T_total = T_total_runoff(:);        % Nx1 numeric
-t_surf = datenum(T_GIC.time(:)).'; % 1xN or Nx1 -> row later
-T_total = T_total(:).';             % 1xN
-t_surf = t_surf(:).';               % 1xN
-T_total_ext = [T_total(1), T_total, T_total(end)];   % prepend first value and append last value
-dt = median(diff(t_surf)); % infer spacing for times: use median diff to be robust for nonuniform grids
-t_surf_ext = [t_surf(1)-dt, t_surf, t_surf(end)+dt]; % prepend one time before first, append one after last
-f.Qr = interp1(t_surf_ext,T_total_ext,f.tsurf,'linear')  ;
+t_runoff = datenum(T_GIC.time(:)).'; % 1xN or Nx1 -> row later
+runoff = runoff(:).';             % 1xN
+t_runoff = t_runoff(:).';               % 1xN
+runoff_ext = [runoff(1), runoff, runoff(end)];   % prepend first value and append last value
+dt = median(diff(t_runoff)); % infer spacing for times: use median diff to be robust for nonuniform grids
+t_runoff_ext = [t_runoff(1)-dt, t_runoff, t_runoff(end)+dt]; % prepend one time before first, append one after last
+f.Qr = interp1(t_runoff_ext,runoff_ext,f.tsurf,'linear')  ;
 f.Tr = 0*f.tsurf; % temperature of riverine input
 f.Sr = 0*f.tsurf; % salinity of riverine input
 
 
-% it is importatnt that t in forcing is the same length
+% it is importatnt that t in forcing is the same length for both
+% air-sea  exchange and rivers
 % set up surface forcing - surface freshwater input
 
 
@@ -101,10 +98,14 @@ f.Sr = 0*f.tsurf; % salinity of riverine input
 % Load external profile data from a CSV file
 % profiles from GF13 in 2019 (in front of sill)
 folder_profiles = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/CTDs/';
-individual_profiles = {'20181217_HS181217', '20190123_HS190123', '20190213_HS190213', '20190328_HS190328', ...
-    '20190423_HS190423', '20190514_HS190514', '20190521_HS190521', '20190619_HS190619', ...
-    '20190716_HS190716', '20190819_HS190819', '20190916_GF19131', '20190924_HS190924', ...
-    '20191022_HS191022', '20191120_HS191120', '20191209_HS191209'}; 
+individual_profiles = { ...
+  '20180110_HS180110',  '20180226_HS180226',  '20180312_HS180312',  '20180419_HS180419', ...
+    '20180524_HS180524',  '20180619_HS180619',  '20180730_HS180730',  '20181119_HS181119', ...
+    '20181128_HS181128',  '20181217_HS181217',  '20190123_HS190123',  '20190213_HS190213', ...
+    '20190328_HS190328',  '20190423_HS190423',  '20190514_HS190514',  '20190521_HS190521', ...
+    '20190619_HS190619',  '20190716_HS190716',  '20190819_HS190819',  '20190916_GF19131', ...
+    '20190924_HS190924',  '20191022_HS191022',  '20191120_HS191120',  '20191209_HS191209' ...
+};
 individual_profiles = sort(individual_profiles);
 
 % set up shelf forcing - here constant in time and depth
@@ -114,7 +115,7 @@ individual_profiles = sort(individual_profiles);
 % f.Ss and f.Ts must have dimensions nz x nt
 
 % Set up shelf forcing, and extend deepest value to below to prevent
-% extrapolation
+% extrapolation of gradient, and uses same value as below
 for k=1:length(individual_profiles),
     file_one_profile = fullfile(folder_profiles, [individual_profiles{k}, '.csv']);
     data = readtable(file_one_profile); % Adjust the filename as needed
@@ -136,26 +137,25 @@ for k=1:length(individual_profiles),
     f.ts(k) = time_CTD;
 end
 % extend ts with t_end
-f.ts = [f.ts, t_end+1]; % extend time vector for shelf forcing
-f.Ts = [f.Ts, f.Ts(:,end)];
-f.Ss = [f.Ss, f.Ss(:,end)];
+f.ts = [t_start, f.ts, t_end+1]; % extend time vector for shelf forcing
+f.Ts = [f.Ts(:,1), f.Ts, f.Ts(:,end)];
+f.Ss = [f.Ss(:,1), f.Ss, f.Ss(:,end)];
 f.zs = depth'; % depth vector for shelf forcing (negative below surface)
 
 
 % set up subglacial discharge forcing
 % in this example there is no subglacial discharge
-% f.tsg must have dimensions 1 x nt
-% f.Qsg must have dimensions num plumes x nt
 f.tsg = t; % time vector for subglacial discharge
 f.Qsg = 0*f.tsg; % subglacial discharge on tsg
 
 % % fjord initial conditions
-% % set up to be same as initial shelf profiles
-[a.T0, a.S0] = bin_shelf_profiles(f.Ts(:,1), f.Ss(:,1), f.zs, a.H0);
+% % set up to be same as  average of winter profiles in Ameralik
+% (nov-march)
+% and extrapolate lowest value
+[a.T0, a.S0] = bin_shelf_profiles(Ameralik_mean.T_init, Ameralik_mean.S_init, ...
+    Ameralik_mean.depths*-1, a.H0, 'nearest');
 
-% constant profile for S and T
-a.T0 =  ones(size(a.T0)) * 0.1;   % constant profile
-a.S0 =  ones(size(a.S0)) * 33.6;   % constant profile
+
 
 % set up icebergs - in this example there are no icebergs
 a.I0 = 0*a.H0;
@@ -165,23 +165,26 @@ a.I0 = 0*a.H0;
 s = run_model(p, t, f, a);
 
 % save the output
-save ameralik_combined_set_fjord_initial.mat s p t f a
-
-
+% save ameralik_combined_with_spinup.mat s p t f a
 
 
 % % 
 % % make an animation of the output (takes a few minutes)
-% animate(p,s,50,'ameralik_combined_initial_fjord');
+savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_video_output';
+% animate(p,s,200,fullfile(savefoldervideo, 'ameralik_combined_spinup_long'));
 
 
+% FW CONTENT
+load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
+depth_ranges = [0 50; 50 200; 200 500];
+plotFWcontent(Ameralik_mean, s, a, 33.6, depth_ranges);
 
 % % make basic plots of the output
 % plotrpm(p,s,25);
 
-title=  'Model Summary Ameralik Combi Initial fjord';
+title=  'Model Summary Ameralik Combi Initial fjord Smaller layers And Spinup';
 plotrpm_no_glacier(p,s,a, 25,  title)
-% % % Save files
-% fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
-%    strrep(title, ' ', '_'));
+% % Save files
+fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
+   strrep(title, ' ', '_'));
 % exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');

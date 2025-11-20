@@ -6,7 +6,7 @@ set(groot, 'DefaultAxesFontSize', 14);
 set(groot, 'DefaultTextFontSize', 16);
 %% time vectors
 
-a.V0 = a.H0*p.W; %volume
+a.A0v = a.H0*p.W; %area vertical
 
 % time vectors
 s.t_date = datetime(s.t, 'ConvertFrom','datenum');
@@ -125,7 +125,7 @@ set(gca,'box','on'); grid on; title('SHELF');
 %% VOLUME FLUXES ----------------------------------------------------------
 
 s.QVp = squeeze(sum(s.QVp,1)); % multiple plumes
-s.UVs = s.QVs ./ a.V0;         % mean velocity
+s.UVs = s.QVs ./ a.A0v;         % mean velocity
 
 % shelf exchange velocity
 nexttile(bigTile); hold on;
@@ -158,12 +158,13 @@ text(0.98, 0.02, sprintf('into of\nfjord'), ...
 
 set(gca,'box','on'); grid on; title('SHELF FLUXES');
 
+a.A0h = p.L *p.W;  % horizontal area width*length
 % vertical advection
 ints = -[0;cumsum(s.H(1:end-1))];
 nexttile(bigTile); hold on;
 for i=1:length(ip)
     Qint = -cumsum(s.QVv(:,ip(i)),'reverse');
-    s.UVv = Qint ./ a.V0;
+    s.UVv = Qint ./ a.A0h;  % convert to exchagne velocity
     plot(s.UVv,ints,'color',cmapt(i,:),'linewidth',lw);
 end
 xlabel('exchange velocity (m/s)'); ylabel('depth (m)');
