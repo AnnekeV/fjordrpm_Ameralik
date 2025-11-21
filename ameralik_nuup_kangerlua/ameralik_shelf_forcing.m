@@ -64,33 +64,37 @@ individual_profiles = sort(individual_profiles);
 
 % Set up shelf forcing, and extend deepest value to below to prevent
 % extrapolation
+
+grad_salinity = 1e-4;
 for k=1:length(individual_profiles),
     file_one_profile = fullfile(folder_profiles, [individual_profiles{k}, '.csv']);
     data = readtable(file_one_profile); % Adjust the filename as needed
     lastRow = data(end, :);
-    
+
     % Copy the last row of data
     while lastRow.pressure < p.H,
         lastRow.pressure = lastRow.pressure+1; % Assuming p.Hgl is the new value for pressure
+        lastRow.salinity = lastRow.salinity+grad_salinity;
         data = [data; lastRow]; % Interpolate to max fjord depth
     end
-    
-    depth = data.pressure'*-1; % Depth vector (negative values below surface)
-    salinity = data.salinity; % Salinity profile
-    temperature = data.potential_temperature; % Temperature profile
-    time_CTD = data.timeJ(1);
 
-    f.Ss(:,k) = salinity;
-    f.Ts(:,k) = temperature;
-    f.ts(k) = time_CTD;
+    depth = data.pressure'*-1; % Depth vector (negative values below surface)
+    f.Ss(:,k) = data.salinity; % Salinity profile;
+    f.Ts(:,k) = data.potential_temperature; % Temperature profile;
+    f.ts(k) = data.timeJ(1);
 end
 f.ts(1) =0; % see if this fixes anything (AV, 12Nov25 17:20 yes) % will need to change t
+
+
+
 
 if length(individual_profiles) ==1;
     f.Ss(:,2) = salinity;
     f.Ts(:,2) = temperature;
     f.ts(2) = t_end;
 end
+
+
 % Set up time vector for shelf forcing
 
 
@@ -108,6 +112,7 @@ f.Qsg = 0*f.tsg; % subglacial discharge on tsg
 % set up to be same as initial shelf profiles
 [a.T0, a.S0] = bin_shelf_profiles(f.Ts(:,1), f.Ss(:,1), f.zs, a.H0);
 
+
 % set up icebergs - in this example there are no icebergs
 a.I0 = 0*a.H0;
 
@@ -116,7 +121,7 @@ a.I0 = 0*a.H0;
 s = run_model(p, t, f, a);
 
 % save the output
-save amereralik_shelf_forcing.mat s p t f a
+% save amereralik_shelf_forcing.mat s p t f a
 
 % make an animation of the output (takes a few minutes)
 % % animate(p,s,50,'amereralik_shelf_forcing');
@@ -124,17 +129,20 @@ save amereralik_shelf_forcing.mat s p t f a
 % make basic plots of the output
 % plotrpm(p,s,30);
 
-plot_title = "Model summary Ameralik Shelf Forcing"
-% replace spaces in plottitle by "_"
-plot_title_no_space = strrep(plot_title, ' ', '_');
+plot_title = "Model summary Ameralik Shelf Forcing fixed";
 
 plotrpm_no_glacier(p,s,a, 25, plot_title)
 
 % Save files
-fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
-    plot_title_no_space);
-exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
+% fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
+   % strrep(plot_title, ' ', '_'));
+% exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
 
+
+% Save files
+% fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
+%    "shelf");
+% exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
 
 % %% Save mean shelf profile
 % 

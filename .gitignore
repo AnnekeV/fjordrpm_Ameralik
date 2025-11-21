@@ -152,3 +152,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+/examples/untitled.m
+
+/old_environment.yml
