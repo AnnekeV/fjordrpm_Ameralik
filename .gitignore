@@ -13,6 +13,7 @@ z_bkp*/
 # Ignore .zip and .doc(x) files 
 *.zip
 *.doc*
+*.mp4
 
 # Other weird stuff
 # *.mat # need to decide whether .mat files should be kept on github or not
@@ -20,6 +21,7 @@ z_bkp*/
 __MACOSX
 *~
 *.asv
+*.mat
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
