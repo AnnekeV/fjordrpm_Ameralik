@@ -71,9 +71,11 @@ swidth = 1;
 
 % time steps to plot
 inx = round(linspace(1,length(s.t),nframes));
+n_timesteps = length(inx);
 
 % loop over time steps to plot
-for k=1:length(inx)
+for k=1:n_timesteps
+    waitbar(k/n_timesteps);
 
     i = inx(k);
     figure(); set(gcf,'Visible','off');
