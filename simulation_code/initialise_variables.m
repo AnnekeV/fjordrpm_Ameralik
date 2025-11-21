@@ -33,40 +33,36 @@ s.Qsg = zeros(length(p.Wp), length(t));
 
 %% initialise layer depths
 
-% first deal with case where sill is so shallow or so deep that it would
-% result in less than half a layer at top or bottom, by tweaking the
-% sill depth itself
-if p.Hsill<p.H/p.N % avoid very thin layers at top
-    p.Hsill = p.H/p.N;
-elseif p.Hsill>=p.H-0.5*p.H/p.N % if very deep, round to no sill
-    p.Hsill = p.H; 
-    p.sill = 0;
-elseif p.Hsill>=p.H-p.H/p.N % avoid very thin layers at bottom
-    p.Hsill = p.H-p.H/p.N;
-end
-
-% then make sill depth coincide with layer boundary
-if p.sill==1
-    % If there is a sill, redistribute the layers so that they are roughly
-    % the same thickness above and below sill but a box boundary coincides
-    % with the sill depth
-    Nabove = round((p.Hsill/p.H)*p.N);
-    Nbelow = p.N-Nabove;
-    s.H = [(p.Hsill/Nabove)*ones(Nabove,1);...
-           ((p.H-p.Hsill)/Nbelow)*ones(Nbelow,1)];
-    % Store the location of the layer boundary coinciding with the sill
-    s.ksill = Nabove;
-else
+% in case with no sill the layer thicknesses are unmodified and
+% s.ksill=p.N so that all layers exchange with shelf
+if p.sill==0 
     s.H = a.H0;
     s.ksill = p.N;
+% in case with sill, we want the sill depth to coincide with a layer
+% boundary, so some adjustment may be required
+elseif p.sill==1
+    % layers above sill
+    inds_above = find(cumsum(a.H0)<=p.Hsill);
+    if length(inds_above)<2
+        error('Must have at least two layers above sill depth');
+    end
+    if abs(sum(a.H0(inds_above))-p.Hsill) > 1e-10
+        disp('N.B. Adjusting layer thicknesses to coincide with sill depth');
+    end   
+    s.H(inds_above) = a.H0(inds_above)*p.Hsill/sum(a.H0(inds_above));
+    % layers below sill
+    inds_below = find(cumsum(a.H0)>p.Hsill); 
+    s.H(inds_below) = a.H0(inds_below)*(p.H-p.Hsill)/sum(a.H0(inds_below));
+    s.ksill = inds_above(end);
 end
 
 % resulting layer volumes
 s.V = s.H*p.W*p.L;
 
 % layer centres (useful to have at various points in the code)
-layer_boundaries=[0;-cumsum(a.H0)] ;
-s.z = (layer_boundaries(2:end)+layer_boundaries(1:end-1))/2;
+
+ints = -[0;cumsum(s.H)];
+s.z = 0.5*(ints(1:end-1)+ints(2:end));
 
 %% model forcings
 

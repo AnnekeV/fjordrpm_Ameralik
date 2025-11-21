@@ -7,7 +7,7 @@ function s = run_model(p, t, f, a, path_out)
 %   is specified, RUN_MODEL will save a file.
 
 %% check for errors in the given inputs
-status = check_inputs(p, t, f, a);
+[p, t, f, a] = check_inputs(p, t, f, a);
 
 %% preallocate and initialise variables
 s = initialise_variables(p, t, f, a);

@@ -20,7 +20,13 @@ cmap_temp = cmocean('thermal');
 cmap_anom = cmocean('delta');
 
 % some nice plotting colours
-load plotcols.mat
+cols = get(groot, 'DefaultAxesColorOrder');
+
+% set interpreters to ensure labels show up as expected
+set(groot,'DefaultTextInterpreter','tex');
+set(groot,'DefaultAxesTickLabelInterpreter','tex');
+set(groot,'DefaultLegendInterpreter','tex');
+set(groot,'DefaultColorbarTickLabelInterpreter','tex');
 
 % plotting font size
 fs = 10;
@@ -178,7 +184,7 @@ for k=1:n_timesteps
     l4 = plot(s.t,s.Qr,'linewidth',2,'color',cols(4,:));
     plot(s.t(i),s.Qr(i),'o','color',cols(4,:));
     xlabel('time (days)','fontsize',fs);
-    ylabel('flux (m$^3$/s)','fontsize',fs);
+    ylabel('flux (m^3/s)','fontsize',fs);
     set(gca,'box','on','fontsize',fs); grid on;
     legend([l1,l2,l3,l4],'discharge','iceberg melt',...
         'plume melt','river','location','best','fontsize',fs-2);

@@ -6,6 +6,12 @@ function plotrpm(p, s, nplot)
 %   Inputs are the parameters structure p, solution structure s and nplot
 %   is the number of time snapshots to plot.
 
+% set interpreters to ensure labels show up as expected
+set(groot,'DefaultTextInterpreter','tex');
+set(groot,'DefaultAxesTickLabelInterpreter','tex');
+set(groot,'DefaultLegendInterpreter','tex');
+set(groot,'DefaultColorbarTickLabelInterpreter','tex');
+
 % time indices to plot
 ip = [1:max(1,round(length(s.t)/nplot)):length(s.t)];
 
@@ -27,7 +33,7 @@ nexttile; hold on;
 for i=1:length(ip)
     plot(s.T(:,ip(i)),s.z,'color',cmapt(i,:),'linewidth',lw);
 end
-xlabel('temperature (C)'); ylabel('depth (m)');
+xlabel(['temperature (',char(176),'C)']); ylabel('depth (m)');
 h = colorbar; colormap(gca,cmapt); caxis([min(s.t),max(s.t)]);
 ylabel(h,'time (days)'); ylim([-p.H,0]);
 set(gca,'box','on'); grid on; title('FJORD');
@@ -37,7 +43,7 @@ nexttile; hold on;
 for i=1:length(s.z)
     plot(s.t,s.T(i,:),'color',cmapz(length(s.z)-i+1,:),'linewidth',lw);
 end
-xlabel('time (days)'); ylabel('temperature (C)');
+xlabel('time (days)'); ylabel(['temperature (',char(176),'C)']);
 h = colorbar; colormap(gca,cmapz); caxis([-p.H,0]);
 ylabel(h,'depth (m)');
 set(gca,'box','on'); grid on; title('FJORD');
@@ -47,7 +53,7 @@ nexttile; hold on;
 for i=1:length(ip)
     plot(s.Ts(:,ip(i)),s.z,'color',cmapt(i,:),'linewidth',lw);
 end
-xlabel('temperature (C)'); ylabel('depth (m)');
+xlabel(['temperature (',char(176),'C)']); ylabel('depth (m)');
 h = colorbar; colormap(gca,cmapt); caxis([min(s.t),max(s.t)]);
 ylabel(h,'time (days)'); ylim([-p.H,0]);
 set(gca,'box','on'); grid on; title('SHELF');
@@ -57,7 +63,7 @@ nexttile; hold on;
 for i=1:length(s.z)
     plot(s.t,s.Ts(i,:),'color',cmapz(length(s.z)-i+1,:),'linewidth',lw);
 end
-xlabel('time (days)'); ylabel('temperature (C)');
+xlabel('time (days)'); ylabel(['temperature (',char(176),'C)']);
 h = colorbar; colormap(gca,cmapz); caxis([-p.H,0]);
 ylabel(h,'depth (m)');
 set(gca,'box','on'); grid on; title('SHELF');
@@ -122,7 +128,7 @@ nexttile; hold on;
 for i=1:length(ip)
     plot(s.QVp(:,ip(i)),s.z,'color',cmapt(i,:),'linewidth',lw);
 end
-xlabel('volume flux (m$^3$/s)'); ylabel('depth (m)');
+xlabel('volume flux (m^3/s)'); ylabel('depth (m)');
 h = colorbar; colormap(cmapt); caxis([min(s.t),max(s.t)]);
 ylabel(h,'time (days)'); ylim([-p.H,0]);
 set(gca,'box','on'); grid on; title('PLUME');
@@ -132,7 +138,7 @@ nexttile; hold on;
 for i=1:length(ip)
     plot(s.QVs(:,ip(i)),s.z,'color',cmapt(i,:),'linewidth',lw);
 end
-xlabel('volume flux (m$^3$/s)'); ylabel('depth (m)');
+xlabel('volume flux (m^3/s)'); ylabel('depth (m)');
 h = colorbar; colormap(cmapt); caxis([min(s.t),max(s.t)]);
 ylabel(h,'time (days)'); ylim([-p.H,0]);
 set(gca,'box','on'); grid on; title('SHELF');
@@ -146,7 +152,7 @@ for i=1:length(ip)
     Qint = -cumsum(s.QVi(:,ip(i)),'reverse');
     plot(Qint,ints,'color',cmapt(i,:),'linewidth',lw);
 end
-xlabel('volume flux (m$^3$/s)'); ylabel('depth (m)');
+xlabel('volume flux (m^3/s)'); ylabel('depth (m)');
 h = colorbar; colormap(cmapt); caxis([min(s.t),max(s.t)]);
 ylabel(h,'time (days)'); ylim([-p.H,0]);
 set(gca,'box','on'); grid on; title('ICEBERGS');
@@ -160,7 +166,7 @@ for i=1:length(ip)
     Qint = -cumsum(s.QVv(:,ip(i)),'reverse');
     plot(Qint,ints,'color',cmapt(i,:),'linewidth',lw);
 end
-xlabel('volume flux (m$^3$/s)'); ylabel('depth (m)');
+xlabel('volume flux (m^3/s)'); ylabel('depth (m)');
 h = colorbar; colormap(cmapt); caxis([min(s.t),max(s.t)]);
 ylabel(h,'time (days)'); ylim([-p.H,0]);
 set(gca,'box','on'); grid on; title('VERTICAL ADVECTIVE');
@@ -186,7 +192,7 @@ nexttile(2); hold on;
 for i=1:length(ip)
     plot(s.QMi(:,ip(i)),s.z,'color',cmapt(i,:),'linewidth',lw);
 end
-xlabel('iceberg melt flux (m$^3$/s)'); ylabel('depth (m)');
+xlabel('iceberg melt flux (m^3/s)'); ylabel('depth (m)');
 h = colorbar; colormap(cmapt); caxis([min(s.t),max(s.t)]);
 ylabel(h,'time (days)');
 set(gca,'box','on'); grid on;
@@ -212,7 +218,7 @@ nexttile(5); hold on;
 for i=1:length(ip)
     plot(s.QMp(:,ip(i)),s.z,'color',cmapt(i,:),'linewidth',lw);
 end
-xlabel('plume melt flux (m$^3$/s)'); ylabel('depth (m)');
+xlabel('plume melt flux (m^3/s)'); ylabel('depth (m)');
 h = colorbar; colormap(cmapt); caxis([min(s.t),max(s.t)]);
 ylabel(h,'time (days)');
 set(gca,'box','on'); grid on;
@@ -223,7 +229,7 @@ plot(s.t,sum(s.QMi),'linewidth',lw);
 plot(s.t,sum(s.QMp),'linewidth',lw);
 plot(s.t,s.Qsg,'linewidth',lw);
 plot(s.t,s.Qr,'linewidth',lw);
-xlabel('time (days)'); ylabel('total flux (m$^3$/s)');
+xlabel('time (days)'); ylabel('total flux (m^3/s)');
 legend('iceberg melt','plume sub. melt','sub. discharge','river','location','best');
 title('freshwater inputs');
 set(gca,'box','on'); grid on;
