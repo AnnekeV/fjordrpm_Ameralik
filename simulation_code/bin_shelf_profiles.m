@@ -24,9 +24,19 @@ z0 = unique(sort([0; z; -cumsum(H0)]));
 
 % for points within the range of the provided depths, use pchip
 % and outside this, use nearest extrapolation
-Sinterp = griddedInterpolant(z,Sz,'pchip','nearest');
+z_orig = z;      % save original order
+
+% Sort z for griddedInterpolant
+[z_sorted, idx] = sort(z);          % ascending
+Sz_sorted = Sz(idx);                 % apply same ordering
+Tz_sorted = Tz(idx);
+
+% Create interpolants
+Sinterp = griddedInterpolant(z_sorted, Sz_sorted, 'pchip', 'nearest');
+Tinterp = griddedInterpolant(z_sorted, Tz_sorted, 'pchip', 'nearest');
+
+% Interpolate at new points
 S0 = Sinterp(z0);
-Tinterp = griddedInterpolant(z,Tz,'pchip','nearest');
 T0 = Tinterp(z0);
 
 % calculate shelf temperature and salinity Ts0 and Ss0 on model layers

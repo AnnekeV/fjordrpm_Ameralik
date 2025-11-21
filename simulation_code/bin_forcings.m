@@ -21,9 +21,15 @@ z0 = unique(sort([0; f.zs; -cumsum(H)]));
 % interpolate the shelf temperature and salinity profiles given on sample
 % points zs onto the new grid z0, using pchip for interpolation and
 % nearest for extrapolation
-Sinterp = griddedInterpolant(f.zs,f.Ss,'pchip','nearest');
+% Sort z for griddedInterpolant
+[z_sorted, idx] = sort(f.zs);          % ascending
+Ss_sorted = f.Ss(idx,:);                 % apply same ordering
+Ts_sorted = f.Ts(idx,:);
+
+
+Sinterp = griddedInterpolant(z_sorted,Ss_sorted,'pchip','nearest');
 S0 = Sinterp(z0);
-Tinterp = griddedInterpolant(f.zs,f.Ts,'pchip','nearest');
+Tinterp = griddedInterpolant(z_sorted,Ts_sorted,'pchip','nearest');
 T0 = Tinterp(z0);
 
 % calculate shelf temperature and salinity Ts0 and Ss0 on model layers
@@ -37,6 +43,8 @@ for k=1:length(ints)-1
 end
 
 %% second put forcings on model time steps
+
+
 
 % shelf conditions
 Ss = interp1(f.ts,Ss',t,'linear')';

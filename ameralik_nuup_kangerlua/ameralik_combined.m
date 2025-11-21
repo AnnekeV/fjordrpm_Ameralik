@@ -11,6 +11,7 @@ clear; close all;
 path2sourcecode = '/Users/annek/Documents/fjordrpm/';
 addpath(genpath(path2sourcecode));
 
+
 % get basic constants and default controlling parameters
 p = default_parameters;
 p = parameters_ameralik;
@@ -182,9 +183,9 @@ plotFWcontent(Ameralik_mean, s, 33.6, depth_ranges);
 
 % % make basic plots of the output
 % plotrpm(p,s,25);
-
+% 
 title=  'Model Summary Ameralik Combi Initial fjord Smaller layers And Spinup';
-plotrpm_no_glacier(p,s,a, 25,  title)
+% plotrpm_no_glacier(p,s,a, 25,  title)
 % % Save files
 fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
    strrep(title, ' ', '_'));
