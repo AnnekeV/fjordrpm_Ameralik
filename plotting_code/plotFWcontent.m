@@ -1,4 +1,4 @@
-function e = plotFWcontent(Am, s, a, Sref, depth_ranges)
+function e = plotFWcontent(Am, s,  Sref, depth_ranges)
 % PLOTFWCONTENT  Plot freshwater content lines for model + observations.
 %
 % INPUTS:
@@ -13,20 +13,13 @@ function e = plotFWcontent(Am, s, a, Sref, depth_ranges)
     %% --------------------------
     function FW = fw_content(S, z, H0, Sref, min_depth, max_depth)
         layers = find(abs(z) > min_depth & abs(z) < max_depth);
-        FW = sum(((Sref - S(layers,:)) ./ Sref) .* H0(layers), 1);
+        H0(layers)
+        (Sref - S(layers,end)) ./ Sref
+        FW = sum(( (Sref - S(layers,:)) ./ Sref) .* H0(layers), 1);
     end
 
     %% Color palette
-    cbColors = [
-        0, 0, 0;
-        230,159,0;
-        86,180,233;
-        0,158,115;
-        240,228,66;
-        0,114,178;
-        213, 94, 0;
-        204,121,167
-    ] / 255;
+    colors = lines(length(depth_ranges));  % distinct colors
 
     %% Model time vector
     s.date = datetime(s.t, "ConvertFrom", "datenum");
@@ -43,9 +36,11 @@ function e = plotFWcontent(Am, s, a, Sref, depth_ranges)
     end
 
     %% MODEL FW CONTENT
+    
     for k = 1:size(depth_ranges,1)
-        FW = fw_content(s.S, s.z, a.H0, Sref, depth_ranges(k,1), depth_ranges(k,2));
-        plot(s.date, FW, 'LineWidth', 1.6, 'Color', cbColors(k,:), 'DisplayName', model_labels{k});
+        sprintf('model', depth_ranges(k))
+        FW = fw_content(s.S, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
+        plot(s.date, FW, 'LineWidth', 1.6, 'Color', colors(k,:), 'DisplayName', model_labels{k});
     end
 
     %% OBSERVATIONAL FW CONTENT
@@ -55,8 +50,10 @@ function e = plotFWcontent(Am, s, a, Sref, depth_ranges)
     Am.dates = Am.dates(valid_dates);
     Am.S = Am.S(:, valid_dates);
     for k = 1:size(depth_ranges,1)
+        sprintf('observations', depth_ranges(k))
+
         FW = fw_content(Am.S, -Am.depths, Am.dz, Sref, depth_ranges(k,1), depth_ranges(k,2));
-        plot(Am.dates, FW, '--', 'LineWidth',1.3, 'Color', cbColors(k,:), 'DisplayName', obs_labels{k});
+        plot(Am.dates, FW, '--', 'LineWidth',1.3, 'Color', colors(k,:), 'DisplayName', obs_labels{k});
         e.FW(k,:) = FW;
     end
 

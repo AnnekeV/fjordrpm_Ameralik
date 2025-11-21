@@ -6,7 +6,7 @@ set(groot, 'DefaultAxesFontSize', 14);
 set(groot, 'DefaultTextFontSize', 16);
 %% time vectors
 
-a.A0v = a.H0*p.W; %area vertical
+a.A0v = s.H*p.W; %area vertical
 
 % time vectors
 s.t_date = datetime(s.t, 'ConvertFrom','datenum');
@@ -14,7 +14,7 @@ s.t_start = datetime(s.t(1), 'ConvertFrom','datenum', 'Format','d MMM yyyy');
 s.t_days_since_start = s.t - s.t(1);
 
 % time indices to plot
-ip = [1:max(1,round(length(s.t_days_since_start)/nplot)):length(s.t_days_since_start)];
+ip = [1:max(1,round(length(s.t)/nplot)):length(s.t)];
 
 % colourmaps
 cmapt = parula(length(ip));

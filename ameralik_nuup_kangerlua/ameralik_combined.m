@@ -20,8 +20,8 @@ p.Kb = 1e-5; % vertical mixing
 H_layer_deep  = 10;  % layer thickness deeper in fjord
 a.H0 = [[1, 1, 2, 3, 5, 8 ].'; H_layer_deep*ones(((p.H-20)/10),1)];   % layer thicknesses
 p.N = length(a.H0); % number of layers
-p.N = 80; % number of layers
-a.H0 = (p.H/p.N)*ones(p.N,1); % layer thicknesses, here taken to be equal
+% p.N = 80; % number of layers
+% a.H0 = (p.H/p.N)*ones(p.N,1); % layer thicknesses, here taken to be equal
 
 
 
@@ -31,6 +31,7 @@ t_start = datenum(datetime(2018,1,1));
 t_end = datenum(datetime(2019,12,31));
 t = t_start:dt:t_end; % resulting time vector for simulation
 p.t_save = t_start:1:t_end; % times on which to save output
+nt = length(t);
 
 % load initial profile Ameralik (first run open_previous_ctd.m)
 % Save the structure to a MAT-file
@@ -176,8 +177,8 @@ savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NI
 
 % FW CONTENT
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
-depth_ranges = [0 50; 50 200; 200 500];
-plotFWcontent(Ameralik_mean, s, a, 33.6, depth_ranges);
+depth_ranges = [0 50];
+plotFWcontent(Ameralik_mean, s, 33.6, depth_ranges);
 
 % % make basic plots of the output
 % plotrpm(p,s,25);

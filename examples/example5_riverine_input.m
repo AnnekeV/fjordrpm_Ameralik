@@ -52,7 +52,7 @@ p.t_save = 0:1:t_end; % times on which to save output
 f.tsurf = t; % time vector for surface forcing
 f.Qr = 300*exp(-((mod(f.tsurf,365)-200)/30).^2); % riverine input on ta
 f.Tr = 0*t; % temperature of riverine input
-f.Sr = 0*t; % salinity of riverine input
+f.Sr = 0*t; % salini  ty of riverine input
 f.Ta = 0*t; % air temperature
 p.kairsea = 0; % to turn off surface heat fluxes
 
@@ -87,7 +87,7 @@ s = run_model(p, t, f, a);
 save example5_riverine_input.mat s p t f a
 
 % make an animation of the output (takes a few minutes)
-animate(p,s,50,'example5_riverine_input');
+% animate(p,s,50,'example5_riverine_input');
 
 % make basic plots of the output
 plotrpm(p,s,50);
