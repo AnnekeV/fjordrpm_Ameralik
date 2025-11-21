@@ -16,6 +16,11 @@ Tz = Tz(~nan_entries);
 Sz = Sz(~nan_entries);
 z = z(~nan_entries);
 
+% sort shelf profiles in ascending order (needed for griddedInterpolant)
+[z,inds] = sort(z);
+Tz = Tz(inds);
+Sz = Sz(inds);
+
 % add the layer boundaries H0 into the vector of shelf z-values
 z0 = unique(sort([0; z; -cumsum(H0)]));
 

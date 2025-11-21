@@ -13,6 +13,11 @@ f.Ts = f.Ts(~nan_entries,:);
 f.Ss = f.Ss(~nan_entries,:);
 f.zs = f.zs(~nan_entries);
 
+% sort shelf profiles in ascending order (needed for griddedInterpolant)
+[f.zs,inds] = sort(f.zs);
+f.Ts = f.Ts(inds,:);
+f.Ss = f.Ss(inds,:);
+
 %% first put shelf forcing on model layers
 
 % add the layer boundaries H0 into the vector of shelf z-values
