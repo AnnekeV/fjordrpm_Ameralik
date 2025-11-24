@@ -1,3 +1,4 @@
+%% 
 % Script to demonstrate a FjordRPM simulation of fjord response to
 % synoptic shelf variability, for example shoaling and deepening of the
 % pycnocline on the shelf in response to wind events. This sets up an 
@@ -16,7 +17,7 @@ addpath(genpath(path2sourcecode));
 p = default_parameters;
 p = parameters_ameralik;
 p.Kb = 1e-4; % vertical mixing
-p.C0 = 1e5; % sheflf exchange
+p.C0 = 1e4; % shelf exchange
 
 % set up model layers
 H_layer_deep  = 10;  % layer thickness deeper in fjord
@@ -67,9 +68,10 @@ f.tsurf = datenum(T_temp.time).'; % time vector for surface forcing
 % Read CSV into table
 % monthly data,
 % then select appropriate times eries
-T_GIC_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_gic_runoff_2015_2020.csv');
-T_GrIS_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_gris_runoff_2015_2020.csv');
-T_Tundra_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_tundra_runoff_2015_2020.csv');
+
+T_GIC_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_gic_runoff_2015_2020.csv', 'VariableNamingRule', 'preserve');
+T_GrIS_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_gris_runoff_2015_2020.csv', 'VariableNamingRule', 'preserve');
+T_Tundra_15_19 = readtable('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/processed/racmo_ameralik_tundra_runoff_2015_2020.csv', 'VariableNamingRule', 'preserve');
 
 T_GIC =    T_GIC_15_19(mask1819(T_GIC_15_19.time), :); 
 T_GrIS =   T_GrIS_15_19(mask1819(T_GrIS_15_19.time), :); 
@@ -121,7 +123,7 @@ individual_profiles = sort(individual_profiles);
 % extrapolation of gradient, and uses same value as below
 for k=1:length(individual_profiles),
     file_one_profile = fullfile(folder_profiles, [individual_profiles{k}, '.csv']);
-    data = readtable(file_one_profile); % Adjust the filename as needed
+    data = readtable(file_one_profile, 'VariableNamingRule', 'preserve'); % Adjust the filename as needed
     lastRow = data(end, :);
     
     % Copy the last row of data
@@ -163,6 +165,9 @@ f.Qsg = 0*f.tsg; % subglacial discharge on tsg
 % set up icebergs - in this example there are no icebergs
 a.I0 = 0*a.H0;
 
+
+
+
 % run the model
 % p.plot_runtime = 1; % plot while simulation runs - fun but quite slow
 s = run_model(p, t, f, a);
@@ -177,6 +182,8 @@ savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NI
 % animate(p,s,200,fullfile(savefoldervideo, 'ameralik_combined_spinup_long'));
 
 
+
+
 % PLOT AND SAVE FW CONTENT
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
 depth_ranges = [0 50; 50 200];%; 200 500];
@@ -187,6 +194,19 @@ base =  fullfile(saveFolder_ts, 'FW_content');
 fname = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   % e.g. "..._Kb_1e-05.png"
 print(figFW, fname, '-dpng', '-r300');
 
+% PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
+target_depths = [50 100 200 400];
+figT = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'T'); % temeperature
+base =  fullfile(saveFolder_ts, 'Temperature');
+savenameT =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
+print(figT, savenameT, '-dpng', '-r300');
+figS = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'S');  % salinity
+base =  fullfile(saveFolder_ts, 'Salinity');
+savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
+print(figS, savenameS, '-dpng', '-r300');
+
+
+%%
 % % make basic plots of the output
 % plotrpm(p,s,25);
 % 
@@ -196,13 +216,11 @@ fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIO
    strrep(title, ' ', '_'));
 % exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
 
-% PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
-target_depths = [50 100 200 400];
-figT = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'T'); % temeperature
-base =  fullfile(saveFolder_ts, 'Temperature');
-savenameT =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
-% print(figT, fname, '-dpng', '-r300');
-figS = plotObsModelTimeseries(Ameralik_mean, s, target_depths, 'S');  % salinity
-base =  fullfile(saveFolder_ts, 'Salinity');
-savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
-% print(figS, fname, '-dpng', '-r300');
+
+
+
+% PLOT PROFILES FOR T AND S AND COMPARE WITH OBS
+figPRO = plotCompareObsModelProfiles(Ameralik_mean, s);
+base =  fullfile(folder_fig, 'comparison_obs_model_CTD_all', 'All_profiles_2019');
+savenamePROFILES =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
+print(figPRO, savenamePROFILES, '-dpng', '-r300');

@@ -14,7 +14,7 @@ data = readtable(filename, opts);
 % Inspect variable names (MATLAB will replace spaces/special characters)
 disp(data.Properties.VariableNames);
 
-% Example: convert date/time to datetime array
+% Convert date/time to datetime array
 time = datetime(data.Date_Time, 'InputFormat', 'yyyy-MM-dd');
 t_start = datetime(2019,1,1);
 days_since = datenum(time) - datenum(t_start);
@@ -24,6 +24,7 @@ data.days_since = days_since;
 
 unique_times  = unique(data.Date_Time);
 unique_stn    = unique(data.Event);
+%%
 
 fig_all = figure;
 tiledlayout(1,2);
@@ -236,6 +237,11 @@ for ti = 1:nTime
     close(fig);  % close figure to avoid too many open figures
 end
 
+%%
+
+% ======================================================================
+%    Calculate mean profile of all stations in the fjord, i.e. mean per day
+% ======================================================================
 
 
 % Initialize matrices for daily averages

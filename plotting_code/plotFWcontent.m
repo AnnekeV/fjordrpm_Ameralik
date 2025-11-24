@@ -64,7 +64,8 @@ function fig = plotFWcontent(Am, s,  Sref, depth_ranges)
     end
 
     %% Figure formatting
-    xlabel('Date'); ylabel('Freshwater Content (m)');
+    xlabel('Date'); ylabel('Freshwater Content (m)'); 
+    ylim([-0.5, 5.5])
     legend('Location','best'); grid on;
 
 end
