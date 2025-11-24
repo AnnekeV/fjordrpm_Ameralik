@@ -1,4 +1,4 @@
-function e = plotFWcontent(Am, s,  Sref, depth_ranges)
+function fig = plotFWcontent(Am, s,  Sref, depth_ranges)
 % PLOTFWCONTENT  Plot freshwater content lines for model + observations.
 %
 % INPUTS:
@@ -14,7 +14,7 @@ function e = plotFWcontent(Am, s,  Sref, depth_ranges)
     function FW = fw_content(S, z, H0, Sref, min_depth, max_depth)
         layers = find(abs(z) > min_depth & abs(z) < max_depth);
         H0(layers)
-        (Sref - S(layers,end)) ./ Sref
+        (Sref - S(layers,end)) ./ Sref;
         FW = sum(( (Sref - S(layers,:)) ./ Sref) .* H0(layers), 1);
     end
 
@@ -25,7 +25,7 @@ function e = plotFWcontent(Am, s,  Sref, depth_ranges)
     s.date = datetime(s.t, "ConvertFrom", "datenum");
 
     %% Figure
-    figure; hold on;
+    fig = figure; hold on;
 
     % Labels as cell arrays
     model_labels = cell(size(depth_ranges,1),1);
@@ -39,8 +39,14 @@ function e = plotFWcontent(Am, s,  Sref, depth_ranges)
     
     for k = 1:size(depth_ranges,1)
         sprintf('model', depth_ranges(k))
-        FW = fw_content(s.S, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
-        plot(s.date, FW, 'LineWidth', 1.6, 'Color', colors(k,:), 'DisplayName', model_labels{k});
+        FW_fjord = fw_content(s.S, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
+        plot(s.date, FW_fjord, 'LineWidth', 1.6, 'Color', colors(k,:), 'DisplayName', model_labels{k});
+        FW_shelf = fw_content(s.Ss, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
+        label_str = string(model_labels{k});   % use {} to get content from cell
+        plot(s.date, FW_shelf, ':', 'LineWidth', 1.6, 'Color', colors(k,:), ...
+             'DisplayName', replace(label_str, "Model", "Shelf"));
+
+
     end
 
     %% OBSERVATIONAL FW CONTENT

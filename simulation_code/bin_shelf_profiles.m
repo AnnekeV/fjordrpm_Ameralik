@@ -29,7 +29,6 @@ z0 = unique(sort([0; z; -cumsum(H0)]));
 
 % for points within the range of the provided depths, use pchip
 % and outside this, use nearest extrapolation
-z_orig = z;      % save original order
 
 % Sort z for griddedInterpolant
 [z_sorted, idx] = sort(z);          % ascending

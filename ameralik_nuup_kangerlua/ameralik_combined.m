@@ -15,7 +15,8 @@ addpath(genpath(path2sourcecode));
 % get basic constants and default controlling parameters
 p = default_parameters;
 p = parameters_ameralik;
-p.Kb = 1e-5; % vertical mixing
+p.Kb = 1e-4; % vertical mixing
+p.C0 = 1e5; % sheflf exchange
 
 % set up model layers
 H_layer_deep  = 10;  % layer thickness deeper in fjord
@@ -124,7 +125,7 @@ for k=1:length(individual_profiles),
     lastRow = data(end, :);
     
     % Copy the last row of data
-    while lastRow.pressure < p.H,
+    while lastRow.pressure < p.H
         lastRow.pressure = lastRow.pressure+1; % Assuming p.Hgl is the new value for pressure
         data = [data; lastRow]; % Interpolate to max fjord depth
     end
@@ -176,17 +177,32 @@ savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NI
 % animate(p,s,200,fullfile(savefoldervideo, 'ameralik_combined_spinup_long'));
 
 
-% FW CONTENT
+% PLOT AND SAVE FW CONTENT
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
-depth_ranges = [0 50];
-plotFWcontent(Ameralik_mean, s, 33.6, depth_ranges);
+depth_ranges = [0 50; 50 200];%; 200 500];
+figFW = plotFWcontent(Ameralik_mean, s, 33.3, depth_ranges);
+folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
+saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
+base =  fullfile(saveFolder_ts, 'FW_content');
+fname = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   % e.g. "..._Kb_1e-05.png"
+print(figFW, fname, '-dpng', '-r300');
 
 % % make basic plots of the output
 % plotrpm(p,s,25);
 % 
 title=  'Model Summary Ameralik Combi Initial fjord Smaller layers And Spinup';
-% plotrpm_no_glacier(p,s,a, 25,  title)
-% % Save files
+plotrpm_no_glacier(p,s,a, 25,  title)
 fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
    strrep(title, ' ', '_'));
 % exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
+
+% PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
+target_depths = [50 100 200 400];
+figT = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'T'); % temeperature
+base =  fullfile(saveFolder_ts, 'Temperature');
+savenameT =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
+% print(figT, fname, '-dpng', '-r300');
+figS = plotObsModelTimeseries(Ameralik_mean, s, target_depths, 'S');  % salinity
+base =  fullfile(saveFolder_ts, 'Salinity');
+savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
+% print(figS, fname, '-dpng', '-r300');

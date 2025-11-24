@@ -6,9 +6,9 @@ p = default_parameters;
 %   values can be modified afterwards for specific runs.
 
 % set up fjord geometry
-p.W = 3.5e3; % fjord width (m)
-p.L = 80e3; % fjord length (m)
-p.H = 800; % fjord depth (m)
+p.W = 5.5e3; % fjord width (m)
+p.L = 75e3; % fjord length (m)
+p.H = 700; % fjord depth (m)
 p.sill = 1; % p.sill=1 for presence of sill, p.sill=0 for no sill
 p.Hsill = 110; % sill depth below surface (m), only used if p.sill=1
 
