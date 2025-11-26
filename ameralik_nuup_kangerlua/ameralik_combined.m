@@ -16,20 +16,29 @@ addpath(genpath(path2sourcecode));
 % get basic constants and default controlling parameters
 p = default_parameters;
 p = parameters_ameralik;
-p.Kb = 1e-4; % vertical mixing
+
+
+p.Kb = 1e-3; % vertical mixing
 p.C0 = 1e4; % shelf exchange
 
 % set up model layers
-H_layer_deep  = 10;  % layer thickness deeper in fjord
-a.H0 = [[1, 1, 2, 3, 5, 8 ].'; H_layer_deep*ones(((p.H-20)/10),1)];   % layer thicknesses
-p.N = length(a.H0); % number of layers
-% p.N = 80; % number of layers
+% H_layer_deep  = 2;  % layer thickness deeper in fjord
+% % a.H0 = [[1, 1, 2, 3, 5, 8 ].'; H_layer_deep*ones(((p.H-20)/10),1)];   % layer thicknesses
+% p.N = 350;
 % a.H0 = (p.H/p.N)*ones(p.N,1); % layer thicknesses, here taken to be equal
-
+% Layer thicknesses
+layers_1m   = ones(20,1);          % first 20 m, 1 m layers
+layers_2m   = 2*ones((50-20)/2,1); % 20–50 m, 2 m layers
+layers_5m   = 5*ones((110-50)/5,1); % 50–110 m, 5 m layers
+layers_10m  = 10*ones((p.H-110)/10,1); % 110 m to bottom, 10 m layers
+% 
+% % Combine
+a.H0 = [layers_1m; layers_2m; layers_5m; layers_10m];
+p.N = length(a.H0); % number of layers
 
 
 % set up time stepping
-dt = 0.2; % time step (in days)
+dt = 0.01; % time step (in days)
 t_start = datenum(datetime(2018,1,1));
 t_end = datenum(datetime(2019,12,31));
 t = t_start:dt:t_end; % resulting time vector for simulation
@@ -161,22 +170,22 @@ f.Qsg = 0*f.tsg; % subglacial discharge on tsg
     Ameralik_mean.depths*-1, a.H0, 'nearest');
 
 
-
 % set up icebergs - in this example there are no icebergs
 a.I0 = 0*a.H0;
-
-
-
 
 % run the model
 % p.plot_runtime = 1; % plot while simulation runs - fun but quite slow
 s = run_model(p, t, f, a);
 
+
+
 % save the output
-% save ameralik_combined_with_spinup.mat s p t f a
+% assume p.Kb and p.C0 exist
+savename = sprintf('ameralik_combined_Kb%0.0e_C0%0.0e.mat', p.Kb, p.C0);
+save(savename, 's', 'p', 't', 'f', 'a');
 
 
-% % 
+
 % % make an animation of the output (takes a few minutes)
 savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_video_output';
 % animate(p,s,200,fullfile(savefoldervideo, 'ameralik_combined_spinup_long'));
@@ -185,26 +194,33 @@ savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NI
 
 
 % PLOT AND SAVE FW CONTENT
+titleStr = sprintf('Kb=%0.0e C0=%0.0e', p.Kb, p.C0);
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
-depth_ranges = [0 50; 50 200];%; 200 500];
-figFW = plotFWcontent(Ameralik_mean, s, 33.3, depth_ranges);
+depth_ranges = [0 50; 50  200];%; 200 500];
+figFW = plotFWcontent(Ameralik_mean, s, 33.3, depth_ranges, titleStr);
 folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
 saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
 base =  fullfile(saveFolder_ts, 'FW_content');
-fname = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   % e.g. "..._Kb_1e-05.png"
+fname = sprintf('%s_Kb_%0.0e_C0_%0.0e_layers.png', base, p.Kb, p.C0);   % e.g. "..._Kb_1e-05.png"
 print(figFW, fname, '-dpng', '-r300');
+saveFigure(figFW, fname, 11, 6, 300);
 
-% PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
-target_depths = [50 100 200 400];
-figT = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'T'); % temeperature
-base =  fullfile(saveFolder_ts, 'Temperature');
-savenameT =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
-print(figT, savenameT, '-dpng', '-r300');
-figS = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'S');  % salinity
-base =  fullfile(saveFolder_ts, 'Salinity');
-savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
-print(figS, savenameS, '-dpng', '-r300');
 
+% %%
+% % PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
+% target_depths = [50 100 200 400];
+% figT = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'T', titleStr); % temeperature
+% 
+% 
+% base = fullfile(saveFolder_ts, 'Temperature');
+% savenameT = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);
+% saveFigure(figT, savenameT, 9,6);
+% 
+% figS = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'S', titleStr);  % salinity
+% base =  fullfile(saveFolder_ts, 'Salinity');
+% savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
+% saveFigure(figS, savenameS, 9,6);
+% 
 
 %%
 % % make basic plots of the output
@@ -216,11 +232,11 @@ fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIO
    strrep(title, ' ', '_'));
 % exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
 
-
+% 
 
 
 % PLOT PROFILES FOR T AND S AND COMPARE WITH OBS
 figPRO = plotCompareObsModelProfiles(Ameralik_mean, s);
 base =  fullfile(folder_fig, 'comparison_obs_model_CTD_all', 'All_profiles_2019');
-savenamePROFILES =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
-print(figPRO, savenamePROFILES, '-dpng', '-r300');
+savenamePROFILES =  sprintf('%s_Kb_%0.0e_C0_%0.0e_layers_different.png', base, p.Kb, p.C0);   
+saveFigure(figPRO, savenamePROFILES, 20, 12, 300);
