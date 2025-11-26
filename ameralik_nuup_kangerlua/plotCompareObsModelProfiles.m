@@ -30,6 +30,7 @@ function fig = plotCompareObsModelProfiles(Ameralik_mean, s)
     % Create figure with tiled layout: rows = nDates, 2 columns (T & S)
     fig = figure('Name','Obs vs Model Comparison','NumberTitle','off');
     t = tiledlayout(nRows, ceil(nDates/nRows*2));%,'TileSpacing','compact','Padding','compact');
+   
 
     dateIdx = find(validMask);
 

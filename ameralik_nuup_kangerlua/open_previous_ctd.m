@@ -1,3 +1,9 @@
+% Open CTDs from Ameralik as published on pangea
+addpath('/Users/annek/Documents/gsw_matlab_v3_06_16')
+addpath('/Users/annek/Documents/gsw_matlab_v3_06_16/library')
+savepath()
+gsw_ver()  % should return the toolbox versionavepath
+
 % File path
 filename = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/raw/SW-Greenland-fjords_CTD.tab';
 saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/CTD_profiles_Ameralik';
@@ -275,10 +281,26 @@ end
 inWinter = (month(unique_times) > 10) | (month(unique_times) < 4);
 
 
+lon = -51; lat = 64; pref = 0;
+
+
+% Convert SP -> Absolute Salinity
+SA = gsw_SA_from_SP(S_daily_mean, pref, lon, lat);
+
+% Convert in situ temperature -> Conservative Temperature
+CT = gsw_CT_from_t(SA, T_daily_mean, pref);
+
+% Calculate potential density and temperature referenced to 0 dbar
+rho_theta = gsw_rho(SA, CT, pref);  % kg/m^3
+theta = gsw_pt_from_CT(SA, CT);   % °C
+
+
+
 % Combine into a single structure
 Ameralik_mean = struct();
-Ameralik_mean.T = T_daily_mean;
+Ameralik_mean.T = theta;
 Ameralik_mean.S = S_daily_mean;
+Ameralik_mean.rho = rho_theta;
 Ameralik_mean.depths = unique_depths;
 Ameralik_mean.dates  = unique_times;
 Ameralik_mean.nProfilesperdate = nProfilesperdate;
@@ -290,4 +312,8 @@ Ameralik_mean.S_init = mean(S3D_Am(:,:, inWinter),[2,3],'omitnan') ;  % average 
 % Save the structure to a MAT-file
 saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
 save(fullfile(saveFolder,'Ameralik_mean_daily.mat'), 'Ameralik_mean');
+
+
+
+
 

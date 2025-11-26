@@ -1,4 +1,4 @@
-function fig = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, varname)
+function fig = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, varname, titleStr)
 % PLOT_OBS_MODEL_TIMESERIES Plot model vs observation timeseries for temperature or salinity.
 %
 % INPUTS:
@@ -6,9 +6,7 @@ function fig = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, va
 %   s             - model struct with fields: T, S, z, t
 %   target_depths - vector of depths to plot [m], e.g., [50 100 200 400]
 %   varname       - 'T' for temperature or 'S' for salinity
-%   savename      - string appended to file name
-%   saveFolder    - folder path to save figure
-%
+
 % OUTPUT:
 %   fig           - figure handle
 
@@ -44,6 +42,8 @@ function fig = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, va
 
     %% Create figure
     fig = figure; hold on;
+    title(titleStr);
+
     colors = lines(length(target_depths));
 
     %% Plot each depth
@@ -68,7 +68,6 @@ function fig = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, va
     %% Formatting
     xlim([datetime(2019,1,1) datetime(2019,12,31)]);
     grid on; box on;
-    xlabel('Date');
 
     if strcmp(varname,'T')
         ylabel('Temperature (°C)');
