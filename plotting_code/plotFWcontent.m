@@ -1,4 +1,4 @@
-function fig = plotFWcontent(Am, s,  Sref, depth_ranges)
+function fig = plotFWcontent(Am, s,  Sref, depth_ranges, titleStr)
 % PLOTFWCONTENT  Plot freshwater content lines for model + observations.
 %
 % INPUTS:
@@ -13,8 +13,6 @@ function fig = plotFWcontent(Am, s,  Sref, depth_ranges)
     %% --------------------------
     function FW = fw_content(S, z, H0, Sref, min_depth, max_depth)
         layers = find(abs(z) > min_depth & abs(z) < max_depth);
-        H0(layers)
-        (Sref - S(layers,end)) ./ Sref;
         FW = sum(( (Sref - S(layers,:)) ./ Sref) .* H0(layers), 1);
     end
 
@@ -26,6 +24,7 @@ function fig = plotFWcontent(Am, s,  Sref, depth_ranges)
 
     %% Figure
     fig = figure; hold on;
+    title(titleStr);
 
     % Labels as cell arrays
     model_labels = cell(size(depth_ranges,1),1);
@@ -38,9 +37,8 @@ function fig = plotFWcontent(Am, s,  Sref, depth_ranges)
     %% MODEL FW CONTENT
     
     for k = 1:size(depth_ranges,1)
-        sprintf('model', depth_ranges(k))
         FW_fjord = fw_content(s.S, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
-        plot(s.date, FW_fjord, 'LineWidth', 1.6, 'Color', colors(k,:), 'DisplayName', model_labels{k});
+        plot(s.date, FW_fjord, '--', 'LineWidth', 1.6, 'Color', colors(k,:), 'DisplayName', model_labels{k});
         FW_shelf = fw_content(s.Ss, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
         label_str = string(model_labels{k});   % use {} to get content from cell
         plot(s.date, FW_shelf, ':', 'LineWidth', 1.6, 'Color', colors(k,:), ...
@@ -56,15 +54,13 @@ function fig = plotFWcontent(Am, s,  Sref, depth_ranges)
     Am.dates = Am.dates(valid_dates);
     Am.S = Am.S(:, valid_dates);
     for k = 1:size(depth_ranges,1)
-        sprintf('observations', depth_ranges(k))
-
         FW = fw_content(Am.S, -Am.depths, Am.dz, Sref, depth_ranges(k,1), depth_ranges(k,2));
-        plot(Am.dates, FW, '--', 'LineWidth',1.3, 'Color', colors(k,:), 'DisplayName', obs_labels{k});
+        plot(Am.dates, FW, '-', 'LineWidth',1.3, 'Color', colors(k,:), 'DisplayName', obs_labels{k});
         e.FW(k,:) = FW;
     end
 
     %% Figure formatting
-    xlabel('Date'); ylabel('Freshwater Content (m)'); 
+    ylabel('Freshwater Content (m)'); 
     ylim([-0.5, 5.5])
     legend('Location','best'); grid on;
 
