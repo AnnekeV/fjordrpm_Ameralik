@@ -70,26 +70,31 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
             plot(Am.dates, FW_obs, '-k', 'LineWidth',1.3, 'DisplayName','Obs');
         end
 
-        xlim([datetime(2018,1,1), datetime(2020,1,1)]);
+        xlim([datetime(2018,1,1), datetime(2020,1,1)]); ylim([ 0 6]);
         ylabel('FW (m)');
         title(sprintf('%s', drLabel));
         grid on;
     end
 
-    % Only bottom row x-label
-    ax = fig.Children; % axes objects in reverse order
+    % After plotting, collect axes (in correct order)
+    ax = findall(fig, 'Type', 'axes');
+    ax = flip(ax);  % reorder so first tile = first axis
+    
     nCols = tileShape(2);
-    for jj = 1:numel(ax)
-        if ~ismember(jj, numel(ax)-nCols+1:numel(ax))
-            ax(jj).XTickLabel = [];
-        else
+    nAx = numel(ax);
+    
+    % Only bottom row x-label
+    bottomAxes = ax(nAx-nCols+1 : nAx);
+    for jj = 1:nAx
+        if ismember(ax(jj), bottomAxes)
             xlabel(ax(jj), 'Time');
+        else
+            ax(jj).XTickLabel = [];
         end
     end
-
-    % Put legend in last tile
-    lg = legend(ax(1), 'Location','southwest');
-    title(tlo, titleStr);
+    
+    % Put legend in the last axis (not on layout object)
+    legend(ax(1), 'Location', 'best');
 
 end
 
@@ -102,32 +107,43 @@ sims = {
     load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
     load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
     load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s, 
-    load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s
+    load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s,
+     load('ameralik_combined_Kb1e-03_C01e+04_2019_only.mat', 's').s
+
     };
-simNames = {'High mix - Low shelfX', 
+simNames = {
+    'High mix - Low shelfX', 
     'Low mix - Low shelfX',
     'Low mix - High shelfX',
     'High mix - High shelfX',
     'Very high mix - High ShelfX',
-    'Very high mix - Low ShelfX'
+    'Very high mix - Low ShelfX',
+        'Very high mix - Low ShelfX - 2019 only',
+
     };
 
 % Save the structure to a MAT-file
 saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
+load(fullfile(saveFolder,'Ameralik_AM5.mat'));
 load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 
 
 depth_ranges = [0 5;
                 0 50;
-                50, 110;
-                50 200];
-                % 200 500];
+                50 110;
+                50 200;
+                200 500;
+                0 110];
 
 Sref = 33.6;
 
+close all;
+
 folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
 saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
-fig = plotFWcontentByDepthRange(Ameralik_mean, sims, Sref, depth_ranges, 'FW Content Comparison', simNames, [2 2]);
-base =  fullfile(saveFolder_ts, 'FW_Content_simulations_incl_upper_5');
-savenameS =  sprintf('%s.png', base);   
-% saveFigure(fig, savenameS, 12,7);
+fig = plotFWcontentByDepthRange( ...
+    AM5, sims, Sref, depth_ranges, ...
+    'FW Content Comparison', simNames, [3 2]);
+base =  fullfile(saveFolder_ts, 'FW_Content_simulations_parameters');
+savenameS =  sprintf('%s_AM5.png', base);   
+saveFigure(fig, savenameS, 12,7);

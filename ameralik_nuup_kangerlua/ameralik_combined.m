@@ -18,7 +18,7 @@ p = default_parameters;
 p = parameters_ameralik;
 
 
-p.Kb = 1e-3; % vertical mixing
+p.Kb = 1e-5; % vertical mixing
 p.C0 = 1e4; % shelf exchange
 
 % set up model layers
@@ -49,7 +49,7 @@ nt = length(t);
 % Save the structure to a MAT-file
 saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
 load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
-
+load(fullfile(saveFolder,'Ameralik_AM5.mat'));
 
 
 
@@ -166,8 +166,8 @@ f.Qsg = 0*f.tsg; % subglacial discharge on tsg
 % % set up to be same as  average of winter profiles in Ameralik
 % (nov-march)
 % and extrapolate lowest value
-[a.T0, a.S0] = bin_shelf_profiles(Ameralik_mean.T_init, Ameralik_mean.S_init, ...
-    Ameralik_mean.depths*-1, a.H0, 'nearest');
+[a.T0, a.S0] = bin_shelf_profiles(AM5.T_init, AM5.S_init, ...
+    AM5.depths*-1, a.H0, 'nearest');
 
 
 % set up icebergs - in this example there are no icebergs
@@ -184,7 +184,7 @@ s = run_model(p, t, f, a);
 savename = sprintf('ameralik_combined_Kb%0.0e_C0%0.0e.mat', p.Kb, p.C0);
 save(savename, 's', 'p', 't', 'f', 'a');
 
-
+%%
 
 % % make an animation of the output (takes a few minutes)
 savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_video_output';
@@ -195,7 +195,6 @@ savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NI
 
 % PLOT AND SAVE FW CONTENT
 titleStr = sprintf('Kb=%0.0e C0=%0.0e', p.Kb, p.C0);
-load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
 depth_ranges = [0 50; 50  200];%; 200 500];
 figFW = plotFWcontent(Ameralik_mean, s, 33.3, depth_ranges, titleStr);
 folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
@@ -227,7 +226,7 @@ saveFigure(figFW, fname, 11, 6, 300);
 % plotrpm(p,s,25);
 % 
 title=  'Model Summary Ameralik Combi Initial fjord Smaller layers And Spinup';
-plotrpm_no_glacier(p,s,a, 25,  title)
+% plotrpm_no_glacier(p,s,a, 25,  title)
 fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
    strrep(title, ' ', '_'));
 % exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
@@ -239,4 +238,4 @@ fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIO
 figPRO = plotCompareObsModelProfiles(Ameralik_mean, s);
 base =  fullfile(folder_fig, 'comparison_obs_model_CTD_all', 'All_profiles_2019');
 savenamePROFILES =  sprintf('%s_Kb_%0.0e_C0_%0.0e_layers_different.png', base, p.Kb, p.C0);   
-saveFigure(figPRO, savenamePROFILES, 20, 12, 300);
+% saveFigure(figPRO, savenamePROFILES, 20, 12, 300);

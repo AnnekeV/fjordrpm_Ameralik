@@ -55,9 +55,10 @@ function fig = plotCompareObsModelProfiles(Ameralik_mean, s)
         grid(axS,'on'); xlabel(axS,'Salinity (PSU)'); yticklabels(axS, {});
         xlim(axS, xlimS);
 
-        % Optional: number of observations
-        n_profiles = Ameralik_mean.nProfilesperdate(idx);
-        title(axS, sprintf('N obs = %d', n_profiles));
+        if isfield(Ameralik_mean, 'nProfilesperdate') && length(Ameralik_mean.nProfilesperdate) >= idx
+            n_profiles = Ameralik_mean.nProfilesperdate(idx);
+            title(axS, sprintf('N obs = %d', n_profiles));
+        end
     end
 
 end
