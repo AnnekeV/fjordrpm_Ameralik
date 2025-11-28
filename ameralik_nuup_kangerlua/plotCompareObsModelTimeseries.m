@@ -1,11 +1,11 @@
 function fig = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, varname, titleStr)
-% PLOT_OBS_MODEL_TIMESERIES Plot model vs observation timeseries for temperature or salinity.
+% PLOT_OBS_MODEL_TIMESERIES Plot model vs observation timeseries for temperature, salinity, or density.
 %
 % INPUTS:
-%   Ameralik_mean - observational struct with fields: T, S, depths, dates
-%   s             - model struct with fields: T, S, z, t
+%   Ameralik_mean - observational struct with fields: T, S, rho, depths, dates
+%   s             - model struct with fields: T, S, rho, z, t
 %   target_depths - vector of depths to plot [m], e.g., [50 100 200 400]
-%   varname       - 'T' for temperature or 'S' for salinity
+%   varname       - 'T' for temperature, 'S' for salinity, 'rho' for density
 
 % OUTPUT:
 %   fig           - figure handle
@@ -15,12 +15,15 @@ function fig = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, va
     model_depths = s.z;
 
     %% Observation dates: only keep columns not all NaN
-    if strcmp(varname,'T')
-        obs_data = Ameralik_mean.T;
-    elseif strcmp(varname,'S')
-        obs_data = Ameralik_mean.S;
-    else
-        error('varname must be "T" or "S".');
+    switch varname
+        case 'T'
+            obs_data = Ameralik_mean.T;
+        case 'S'
+            obs_data = Ameralik_mean.S;
+        case 'rho'
+            obs_data = Ameralik_mean.rho;
+        otherwise
+            error('varname must be "T", "S", or "rho".');
     end
 
     validMask = ~all(isnan(obs_data), 1);
@@ -66,15 +69,16 @@ function fig = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, va
     legend(legend_strings, 'Location', 'best');
 
     %% Formatting
-    xlim([datetime(2019,1,1) datetime(2019,12,31)]);
+    xlim([datetime(2018,1,1) datetime(2019,12,31)]);
     grid on; box on;
 
-    if strcmp(varname,'T')
-        ylabel('Temperature (°C)');
-    else
-        ylabel('Salinity (PSU)');
+    switch varname
+        case 'T'
+            ylabel('Temperature (°C)');
+        case 'S'
+            ylabel('Salinity (PSU)');
+        case 'rho'
+            ylabel('Density (kg/m³)');
     end
-
-
 
 end

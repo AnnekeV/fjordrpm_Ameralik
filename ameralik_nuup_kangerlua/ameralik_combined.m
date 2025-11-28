@@ -18,8 +18,8 @@ p = default_parameters;
 p = parameters_ameralik;
 
 
-p.Kb = 1e-5; % vertical mixing
-p.C0 = 1e4; % shelf exchange
+p.Kb = 1e-3; % vertical mixing
+p.C0 = 1e5; % shelf exchange
 
 % set up model layers
 % H_layer_deep  = 2;  % layer thickness deeper in fjord
@@ -195,8 +195,8 @@ savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NI
 
 % PLOT AND SAVE FW CONTENT
 titleStr = sprintf('Kb=%0.0e C0=%0.0e', p.Kb, p.C0);
-depth_ranges = [0 50; 50  200];%; 200 500];
-figFW = plotFWcontent(Ameralik_mean, s, 33.3, depth_ranges, titleStr);
+depth_ranges = [0 50; 50  110];%; 200 500];
+figFW = plotFWcontent(AM5, s, 33.3, depth_ranges, titleStr);
 folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
 saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
 base =  fullfile(saveFolder_ts, 'FW_content');
@@ -206,20 +206,27 @@ saveFigure(figFW, fname, 11, 6, 300);
 
 
 % %%
-% % PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
-% target_depths = [50 100 200 400];
-% figT = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'T', titleStr); % temeperature
+% PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
+target_depths = [50 100 200 400];
+figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'T', titleStr); % temeperature
+
+
+base = fullfile(saveFolder_ts, 'Temperature');
+savenameT = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);
+saveFigure(figT, savenameT, 9,6);
+
+figS = plotCompareObsModelTimeseries(AM5, s, target_depths, 'S', titleStr);  % salinity
+base =  fullfile(saveFolder_ts, 'Salinity');
+savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
+saveFigure(figS, savenameS, 9,6);
 % 
-% 
-% base = fullfile(saveFolder_ts, 'Temperature');
-% savenameT = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);
-% saveFigure(figT, savenameT, 9,6);
-% 
-% figS = plotCompareObsModelTimeseries(Ameralik_mean, s, target_depths, 'S', titleStr);  % salinity
-% base =  fullfile(saveFolder_ts, 'Salinity');
-% savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
-% saveFigure(figS, savenameS, 9,6);
-% 
+
+target_depths = [50 100 200 400];
+s.rho = calculateDensity(s.S, s.T);
+figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'rho', titleStr); % temeperature
+figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7]);
+base =  fullfile(saveFolder_ts, 'Surfer_dens');
+saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0), 9,6);
 
 %%
 % % make basic plots of the output

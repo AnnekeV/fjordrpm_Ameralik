@@ -102,23 +102,24 @@ end
 
 
 sims = {
-    load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
     load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
     load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
+    load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
     load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
-    load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s, 
-    load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s,
-     load('ameralik_combined_Kb1e-03_C01e+04_2019_only.mat', 's').s
+    load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
+    load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s,
+     load('ameralik_combined_Kb1e-03_C01e+05_2019_only.mat', 's').s
 
     };
 simNames = {
-    'High mix - Low shelfX', 
     'Low mix - Low shelfX',
     'Low mix - High shelfX',
     'High mix - High shelfX',
+    'High mix - Low shelfX', 
+      'Very high mix - Low ShelfX',
+
     'Very high mix - High ShelfX',
-    'Very high mix - Low ShelfX',
-        'Very high mix - Low ShelfX - 2019 only',
+    'Very high mix - High ShelfX - 2019 only',
 
     };
 
@@ -132,10 +133,11 @@ depth_ranges = [0 5;
                 0 50;
                 50 110;
                 50 200;
+                110 200;
                 200 500;
-                0 110];
+                ];
 
-Sref = 33.6;
+Sref = 33.4;
 
 close all;
 

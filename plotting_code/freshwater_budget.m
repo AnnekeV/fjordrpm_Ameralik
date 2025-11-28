@@ -3,13 +3,13 @@
 % clear; close all;
 
 % load model output
-load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+04.mat
+load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-03_C01e+05.mat
 
 % define layers for budget (defining our box)
-z_bnd = [0, 56];
+z_bnd = [0, 110];
 layers = find(abs(s.z)>z_bnd(1)&abs(s.z)<z_bnd(2)); % [top layer:bottom layer]
 % reference salinity
-Sref = 34;
+Sref = 33.4;
 
 
 %% tendencies
@@ -102,12 +102,6 @@ subplot(3,1,1); hold on;
 s.date = datetime(s.t, 'ConvertFrom', 'datenum');
 
 nFluxes = 6; % river, shelf, vert top, vert base, mix top, mix base
-
-% Get colors from a colormap (e.g., parula, jet, lines, etc.)
-fluxColors = parula(nFluxes); % you can also use jet(nFluxes), lines(nFluxes), etc.
-
-figure;
-nFluxes = 6; % river, shelf, vert top, vert base, mix top, mix base
 fluxColors = parula(nFluxes); % consistent colormap for flux terms
 
 % Volume flux subplot
@@ -154,50 +148,92 @@ ylabel('Salt flux (PSU·m^3/s)');
 
 
 %% plots cumulative
-figCum = figure('Name','cumulative')
+figCum = figure('Name','cumulative');
 
 % Extract year info
 years = year(s.date);
 uniqueYears = unique(years);
 
 
+rcumsum = @(x) cumsum(x - x(1));
 
+dt_sec = mean(diff(s.t)) * 24*60*60;
 
+% Loop over each year
 for iy = 1:length(uniqueYears)
     % Indices for this year
     idx = years == uniqueYears(iy);
 
     subplot(1,1,1); hold on;
-    plot(s.date(idx), cumsum(FW_river(idx)), 'Color', fluxColors(1,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_shelf(idx)), 'Color', fluxColors(2,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_vert_top(idx)), 'Color', fluxColors(3,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_vert_base(idx)), 'Color', fluxColors(4,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_mix_top(idx)), 'Color', fluxColors(5,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_mix_base(idx)), 'Color', fluxColors(6,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_sum(idx)), 'k--','LineWidth',2);
-    plot(s.date(idx), cumsum(FW_tendency(idx)), 'r:','LineWidth',2);
-    legend('river','shelf','vert top','vert base','mix top','mix base','SUM','tendency', 'Location','northwest')
-    ylabel('Freshwater transport (m^3/s)');
-    xlabel('day');
-    title(['Cumulative freshwater transport ' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), ' m']);
-    % 
-    % subplot(2,1,2); hold on;
-    % plot(s.date(idx), cumsum(salt_river(idx)), 'Color', fluxColors(1,:), 'LineWidth',2);
-    % plot(s.date(idx), cumsum(salt_shelf(idx)), 'Color', fluxColors(2,:), 'LineWidth',2);
-    % plot(s.date(idx), cumsum(salt_vert_top(idx)), 'Color', fluxColors(3,:), 'LineWidth',2);
-    % plot(s.date(idx), cumsum(salt_vert_base(idx)), 'Color', fluxColors(4,:), 'LineWidth',2);
-    % plot(s.date(idx), cumsum(salt_mix_top(idx)), 'Color', fluxColors(5,:), 'LineWidth',2);
-    % plot(s.date(idx), cumsum(salt_mix_base(idx)), 'Color', fluxColors(6,:), 'LineWidth',2);
-    % plot(s.date(idx), cumsum(salt_sum(idx)), 'k--','LineWidth',2);
-    % plot(s.date(idx), cumsum(salt_tendency(idx)), 'r:','LineWidth',2);
-    % legend('river','shelf','vert top','vert base','mix top','mix base','SUM','tendency');
-    % ylabel('Salt flux term');
-    % xlabel('day');
-    % title(['Salt flux year ' num2str(uniqueYears(iy))]);
+
+    % Plot cumulative volume fluxes per year
+    plot(s.date(idx), cumsum(FW_river(idx))* dt_sec/1e9,     'Color', fluxColors(1,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_shelf(idx))* dt_sec/1e9,      'Color', fluxColors(2,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_vert_top(idx))* dt_sec/1e9,   'Color', fluxColors(3,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_vert_base(idx))* dt_sec/1e9,  'Color', fluxColors(4,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_mix_top(idx))* dt_sec/1e9,   'Color', fluxColors(5,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_mix_base(idx))* dt_sec/1e9,  'Color', fluxColors(6,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_sum(idx))* dt_sec/1e9,        'k--','LineWidth',2);
+    plot(s.date(idx), cumsum(FW_tendency(idx))* dt_sec/1e9,   'r:','LineWidth',2);  % tendency
+
 end
+legend('river','shelf','vert top','vert base','mix top','mix base','SUM', 'tendency', 'Location','northwest');
+
+ylabel('Freshwater transport (km^3)');
+xlabel('day');
+title(['Cumulative freshwater transport ' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), ' m']);
 
 grid on;
 
+figCum.Position = [100 100 1200 600];  % [x y width height]
 folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
-figName = ['Cumulative_freshwater_transport_' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), 'm']
-exportgraphics(figCum, [figName '.pdf'], 'ContentType', 'vector');
+figName = [folder_fig, 'FW_budget/', 'Cumulative_freshwater_transport_' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), 'm']
+% Save as PNG image — high quality
+exportgraphics(figCum, [figName '.png'], 'Resolution', 300);
+
+
+
+
+%% plots
+figure('Name','Cumulative_Volume_budget')
+subplot(1,1,1); hold on;
+s.date = datetime(s.t, 'ConvertFrom', 'datenum');
+
+nFluxes = 6; % river, shelf, vert top, vert base, mix top, mix base
+fluxColors = parula(nFluxes); % consistent colormap for flux terms
+
+% Volume flux subplot (cumulative)
+plot(s.date, cumsum(Q_river),      'Color', fluxColors(1,:), 'LineWidth',2);
+plot(s.date, cumsum(Q_shelf),      'Color', fluxColors(2,:), 'LineWidth',2);
+plot(s.date, cumsum(Q_vert_top),   'Color', fluxColors(3,:), 'LineWidth',2);
+plot(s.date, cumsum(Q_vert_base),  'Color', fluxColors(4,:), 'LineWidth',2);
+plot(s.date, cumsum(Q_mix_top),    'Color', fluxColors(5,:), 'LineWidth',2);
+plot(s.date, cumsum(Q_mix_base),   'Color', fluxColors(6,:), 'LineWidth',2);
+plot(s.date, cumsum(Q_sum),        'k--','LineWidth',2); % total
+legend('river','shelf','vert top','vert base','mix top','mix base','SUM');
+ylabel('Cumulative Volume flux (m^3/s)');
+title('Cumulative Volume Flux Terms');
+
+
+%%
+
+
+
+
+% t: datetime vector (Nx1)
+% FW_shelf: numeric vector or matrix with N rows (N x M)
+tt = timetable(s.date.', FW_shelf.', 'VariableNames', {'FW_shelf'});                         % create timetable
+monthlyTT = retime(tt, 'monthly', @(x) mean(x,'omitnan'));% monthly mean, ignores NaNs
+
+% Plot (if FW_shelf is a vector)
+figure
+plot(monthlyTT.Time, monthlyTT.FW_shelf, '-o')
+xlabel('Time')
+ylabel('FW\_shelf (monthly mean)')
+title('Monthly Mean of FW\_shelf')
+grid on
+
+% If FW_shelf has multiple columns (locations), plot all columns and add legend
+% legendNames = arrayfun(@(k) sprintf('Loc %d',k), 1:size(monthlyTT.FW_shelf,2), 'UniformOutput', false);
+% plot(monthlyTT.Time, monthlyTT.FW_shelf)
+% legend(legendNames)
