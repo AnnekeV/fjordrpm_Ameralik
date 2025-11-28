@@ -1,14 +1,16 @@
 % code to calculate and plot a freshwater budget for a given set of
 % layers
-clear; close all;
+% clear; close all;
 
 % load model output
-load ../examples/example5_riverine_input.mat
+load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+04.mat
 
 % define layers for budget (defining our box)
-layers = [1:20]; % [top layer:bottom layer]
+z_bnd = [0, 56];
+layers = find(abs(s.z)>z_bnd(1)&abs(s.z)<z_bnd(2)); % [top layer:bottom layer]
 % reference salinity
 Sref = 34;
+
 
 %% tendencies
 FW_layer = p.W*p.L*((Sref-s.S)/Sref).*s.H;
@@ -95,43 +97,107 @@ FW_sum = FW_river+FW_vert_top+FW_vert_base+FW_shelf+FW_mix_top+FW_mix_base;
 salt_sum = salt_river+salt_vert_top+salt_vert_base+salt_shelf+salt_mix_top+salt_mix_base;
 
 %% plots
-figure();
+figure('Name','Volume-Freshwater-Salt-budget')
 subplot(3,1,1); hold on;
-plot(s.t,Q_river,'linewidth',2);
-plot(s.t,Q_shelf,'linewidth',2);
-plot(s.t,Q_vert_top,'linewidth',2);
-plot(s.t,Q_vert_base,'linewidth',2);
-plot(s.t,Q_mix_top,'linewidth',2);
-plot(s.t,Q_mix_base,'linewidth',2);
-plot(s.t,Q_sum,'k--','linewidth',2);
+s.date = datetime(s.t, 'ConvertFrom', 'datenum');
+
+nFluxes = 6; % river, shelf, vert top, vert base, mix top, mix base
+
+% Get colors from a colormap (e.g., parula, jet, lines, etc.)
+fluxColors = parula(nFluxes); % you can also use jet(nFluxes), lines(nFluxes), etc.
+
+figure;
+nFluxes = 6; % river, shelf, vert top, vert base, mix top, mix base
+fluxColors = parula(nFluxes); % consistent colormap for flux terms
+
+% Volume flux subplot
+subplot(3,1,1); hold on;
+plot(s.date, Q_river,      'Color', fluxColors(1,:), 'LineWidth',2);
+plot(s.date, Q_shelf,      'Color', fluxColors(2,:), 'LineWidth',2);
+plot(s.date, Q_vert_top,   'Color', fluxColors(3,:), 'LineWidth',2);
+plot(s.date, Q_vert_base,  'Color', fluxColors(4,:), 'LineWidth',2);
+plot(s.date, Q_mix_top,    'Color', fluxColors(5,:), 'LineWidth',2);
+plot(s.date, Q_mix_base,   'Color', fluxColors(6,:), 'LineWidth',2);
+plot(s.date, Q_sum,        'k--','LineWidth',2); % total
 legend('river','shelf','vert top','vert base','mix top','mix base','SUM');
-ylabel('volume flux term (m^3/s)');
-xlabel('day');
+ylabel('Volume flux (m^3/s)');
+title('Volume Flux Terms');
 
+% Freshwater flux subplot
 subplot(3,1,2); hold on;
-plot(s.t,FW_river,'linewidth',2);
-plot(s.t,FW_shelf,'linewidth',2);
-plot(s.t,FW_vert_top,'linewidth',2);
-plot(s.t,FW_vert_base,'linewidth',2);
-plot(s.t,FW_mix_top,'linewidth',2);
-plot(s.t,FW_mix_base,'linewidth',2);
-plot(s.t,FW_sum,'k--','linewidth',2);
-plot(s.t,FW_tendency,'r:','linewidth',2);
+plot(s.date, FW_river,      'Color', fluxColors(1,:), 'LineWidth',2);
+plot(s.date, FW_shelf,      'Color', fluxColors(2,:), 'LineWidth',2);
+plot(s.date, FW_vert_top,   'Color', fluxColors(3,:), 'LineWidth',2);
+plot(s.date, FW_vert_base,  'Color', fluxColors(4,:), 'LineWidth',2);
+plot(s.date, FW_mix_top,    'Color', fluxColors(5,:), 'LineWidth',2);
+plot(s.date, FW_mix_base,   'Color', fluxColors(6,:), 'LineWidth',2);
+plot(s.date, FW_sum,        'k--','LineWidth',2); % total
+plot(s.date, FW_tendency,   'r:','LineWidth',2);  % tendency
 legend('river','shelf','vert top','vert base','mix top','mix base','SUM','tendency');
-ylabel('FW flux term (m^3/s)');
-xlabel('day');
+ylabel('Freshwater flux (m^3/s)');
+title('Freshwater Flux Terms');
 
+% Salt flux subplot
 subplot(3,1,3); hold on;
-plot(s.t,salt_river,'linewidth',2);
-plot(s.t,salt_shelf,'linewidth',2);
-plot(s.t,salt_vert_top,'linewidth',2);
-plot(s.t,salt_vert_base,'linewidth',2);
-plot(s.t,salt_mix_top,'linewidth',2);
-plot(s.t,salt_mix_base,'linewidth',2);
-plot(s.t,salt_sum,'k--','linewidth',2);
-plot(s.t,salt_tendency,'r:','linewidth',2);
+plot(s.date, salt_river,      'Color', fluxColors(1,:), 'LineWidth',2);
+plot(s.date, salt_shelf,      'Color', fluxColors(2,:), 'LineWidth',2);
+plot(s.date, salt_vert_top,   'Color', fluxColors(3,:), 'LineWidth',2);
+plot(s.date, salt_vert_base,  'Color', fluxColors(4,:), 'LineWidth',2);
+plot(s.date, salt_mix_top,    'Color', fluxColors(5,:), 'LineWidth',2);
+plot(s.date, salt_mix_base,   'Color', fluxColors(6,:), 'LineWidth',2);
+plot(s.date, salt_sum,        'k--','LineWidth',2); % total
+plot(s.date, salt_tendency,   'r:','LineWidth',2);  % tendency
 legend('river','shelf','vert top','vert base','mix top','mix base','SUM','tendency');
-ylabel('salt flux term');
-xlabel('day');
+ylabel('Salt flux (PSU·m^3/s)');
 
 
+
+
+%% plots cumulative
+figCum = figure('Name','cumulative')
+
+% Extract year info
+years = year(s.date);
+uniqueYears = unique(years);
+
+
+
+
+for iy = 1:length(uniqueYears)
+    % Indices for this year
+    idx = years == uniqueYears(iy);
+
+    subplot(1,1,1); hold on;
+    plot(s.date(idx), cumsum(FW_river(idx)), 'Color', fluxColors(1,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_shelf(idx)), 'Color', fluxColors(2,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_vert_top(idx)), 'Color', fluxColors(3,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_vert_base(idx)), 'Color', fluxColors(4,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_mix_top(idx)), 'Color', fluxColors(5,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_mix_base(idx)), 'Color', fluxColors(6,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_sum(idx)), 'k--','LineWidth',2);
+    plot(s.date(idx), cumsum(FW_tendency(idx)), 'r:','LineWidth',2);
+    legend('river','shelf','vert top','vert base','mix top','mix base','SUM','tendency', 'Location','northwest')
+    ylabel('Freshwater transport (m^3/s)');
+    xlabel('day');
+    title(['Cumulative freshwater transport ' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), ' m']);
+    % 
+    % subplot(2,1,2); hold on;
+    % plot(s.date(idx), cumsum(salt_river(idx)), 'Color', fluxColors(1,:), 'LineWidth',2);
+    % plot(s.date(idx), cumsum(salt_shelf(idx)), 'Color', fluxColors(2,:), 'LineWidth',2);
+    % plot(s.date(idx), cumsum(salt_vert_top(idx)), 'Color', fluxColors(3,:), 'LineWidth',2);
+    % plot(s.date(idx), cumsum(salt_vert_base(idx)), 'Color', fluxColors(4,:), 'LineWidth',2);
+    % plot(s.date(idx), cumsum(salt_mix_top(idx)), 'Color', fluxColors(5,:), 'LineWidth',2);
+    % plot(s.date(idx), cumsum(salt_mix_base(idx)), 'Color', fluxColors(6,:), 'LineWidth',2);
+    % plot(s.date(idx), cumsum(salt_sum(idx)), 'k--','LineWidth',2);
+    % plot(s.date(idx), cumsum(salt_tendency(idx)), 'r:','LineWidth',2);
+    % legend('river','shelf','vert top','vert base','mix top','mix base','SUM','tendency');
+    % ylabel('Salt flux term');
+    % xlabel('day');
+    % title(['Salt flux year ' num2str(uniqueYears(iy))]);
+end
+
+grid on;
+
+folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
+figName = ['Cumulative_freshwater_transport_' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), 'm']
+exportgraphics(figCum, [figName '.pdf'], 'ContentType', 'vector');
