@@ -1,29 +1,36 @@
 % code to calculate and plot a freshwater budget for a given set of
 % layers
-% clear; close all;
+clear; close all;
 
 % load model output
 load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-03_C01e+05.mat
+colors_ameralik;
 
 % define layers for budget (defining our box)
-z_bnd = [0, 110];
-layers = find(abs(s.z)>z_bnd(1)&abs(s.z)<z_bnd(2)); % [top layer:bottom layer]
+z_bnd = [110, 500];
+layers = find(abs(s.z)>=z_bnd(1)&abs(s.z)<z_bnd(2)); % [top layer:bottom layer]
 % reference salinity
 Sref = 33.4;
-
+Tf = min(s.T, [],"all");
 
 %% tendencies
+
 FW_layer = p.W*p.L*((Sref-s.S)/Sref).*s.H;
 FW_box = sum(FW_layer(layers,:),1);
 FW_tendency = gradient(FW_box,s.t)/p.sid; % m3/s
 salt_layer = p.W*p.L*s.S.*s.H;
 salt_box = sum(salt_layer(layers,:),1);
 salt_tendency = gradient(salt_box,s.t)/p.sid; % m3/s
+s.rho = calculateDensity(s.S, s.T);
+heat_layer = p.W*p.L.*s.H.*(s.T-Tf).*s.rho;
+heat_box = sum(heat_layer(layers,:),1);
+heat_tendency =  gradient(heat_box,s.t)/p.sid; 
 
 %% river fluxes (assumes river input has salinity 0)
 Q_river = sum(s.QVsurf(layers,:),1);
 FW_river = Q_river;
 salt_river = 0*s.t;
+heat_river =  p.W*p.L.*s.H.*(0-Tf).*s.rho;
 
 %% vertical advective fluxes
 % base of selected box
@@ -31,6 +38,7 @@ if layers(end)==p.N % if budget box extends to fjord bottom
     Q_vert_base = 0*s.t;
     FW_vert_base = 0*s.t;
     salt_vert_base = 0*s.t;
+    heat_vert_base = 0*s.t;
 else
     Q_vert_base = sum(s.QVv(1:layers(end),:),1);
     % nb relevant salinity depends on whether flux is directed up or down
@@ -67,6 +75,14 @@ FW_shelf_layer = s.QVs.*(Sref-S_fw)/Sref;
 FW_shelf = sum(FW_shelf_layer(layers,:),1);
 salt_shelf = sum(s.QSs(layers,:),1);
 
+%% Positive and negative shelf fluxes
+FW_to_shelf_layer =  max(0, -FW_shelf_layer);  % positive values when FW_shelf<0, else 0
+FW_to_fjord_layer =  max(0, FW_shelf_layer);  % positive values when FW_shelf>0, else 0
+FW_to_shelf = sum(FW_to_shelf_layer(layers,:),1);
+FW_to_fjord = sum(FW_to_fjord_layer(layers,:),1);
+
+%% Mean fluxes over depth
+
 %% vertical mixing fluxes
 % no volume exchange
 Q_mix_base = 0*s.t;
@@ -88,6 +104,17 @@ else
     FW_mix_top = -salt_mix_top/Sref;
 end
 
+%% Net vertical 
+Q_top = Q_mix_top + Q_vert_top;
+Q_base = Q_mix_base + Q_vert_base;
+
+FW_top = FW_mix_top + FW_vert_top;
+FW_base = FW_mix_base + FW_vert_base;
+
+salt_top = salt_mix_top + salt_vert_top;
+salt_base = salt_mix_base + salt_mix_base;
+
+
 %% sum of terms to check we've got it right
 % (volume fluxes should sum to 0)
 % (freshwater fluxes should sum to FW_tendency)
@@ -101,8 +128,7 @@ figure('Name','Volume-Freshwater-Salt-budget')
 subplot(3,1,1); hold on;
 s.date = datetime(s.t, 'ConvertFrom', 'datenum');
 
-nFluxes = 6; % river, shelf, vert top, vert base, mix top, mix base
-fluxColors = parula(nFluxes); % consistent colormap for flux terms
+
 
 % Volume flux subplot
 subplot(3,1,1); hold on;
@@ -115,21 +141,23 @@ plot(s.date, Q_mix_base,   'Color', fluxColors(6,:), 'LineWidth',2);
 plot(s.date, Q_sum,        'k--','LineWidth',2); % total
 legend('river','shelf','vert top','vert base','mix top','mix base','SUM');
 ylabel('Volume flux (m^3/s)');
-title('Volume Flux Terms');
+% title('Volume Flux Terms');
 
 % Freshwater flux subplot
 subplot(3,1,2); hold on;
 plot(s.date, FW_river,      'Color', fluxColors(1,:), 'LineWidth',2);
 plot(s.date, FW_shelf,      'Color', fluxColors(2,:), 'LineWidth',2);
-plot(s.date, FW_vert_top,   'Color', fluxColors(3,:), 'LineWidth',2);
-plot(s.date, FW_vert_base,  'Color', fluxColors(4,:), 'LineWidth',2);
-plot(s.date, FW_mix_top,    'Color', fluxColors(5,:), 'LineWidth',2);
-plot(s.date, FW_mix_base,   'Color', fluxColors(6,:), 'LineWidth',2);
+plot(s.date, FW_top,   'Color', fluxColors(3,:), 'LineWidth',2);
+plot(s.date, FW_base,  'Color', fluxColors(4,:), 'LineWidth',2);
+% plot(s.date, FW_vert_top,   'Color', fluxColors(3,:), 'LineWidth',2);
+% plot(s.date, FW_vert_base,  'Color', fluxColors(4,:), 'LineWidth',2);
+% plot(s.date, FW_mix_top,    'Color', fluxColors(5,:), 'LineWidth',2);
+% plot(s.date, FW_mix_base,   'Color', fluxColors(6,:), 'LineWidth',2);
 plot(s.date, FW_sum,        'k--','LineWidth',2); % total
 plot(s.date, FW_tendency,   'r:','LineWidth',2);  % tendency
-legend('river','shelf','vert top','vert base','mix top','mix base','SUM','tendency');
+legend('river','shelf','top', 'base','SUM','tendency');
 ylabel('Freshwater flux (m^3/s)');
-title('Freshwater Flux Terms');
+% title('Freshwater Flux Terms');
 
 % Salt flux subplot
 subplot(3,1,3); hold on;
@@ -169,19 +197,19 @@ for iy = 1:length(uniqueYears)
     % Plot cumulative volume fluxes per year
     plot(s.date(idx), cumsum(FW_river(idx))* dt_sec/1e9,     'Color', fluxColors(1,:), 'LineWidth',2);
     plot(s.date(idx), cumsum(FW_shelf(idx))* dt_sec/1e9,      'Color', fluxColors(2,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_vert_top(idx))* dt_sec/1e9,   'Color', fluxColors(3,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_vert_base(idx))* dt_sec/1e9,  'Color', fluxColors(4,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_mix_top(idx))* dt_sec/1e9,   'Color', fluxColors(5,:), 'LineWidth',2);
-    plot(s.date(idx), cumsum(FW_mix_base(idx))* dt_sec/1e9,  'Color', fluxColors(6,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_top(idx))* dt_sec/1e9,   'Color', fluxColors(3,:), 'LineWidth',2);
+    plot(s.date(idx), cumsum(FW_base(idx))* dt_sec/1e9,  'Color', fluxColors(4,:), 'LineWidth',2);
     plot(s.date(idx), cumsum(FW_sum(idx))* dt_sec/1e9,        'k--','LineWidth',2);
     plot(s.date(idx), cumsum(FW_tendency(idx))* dt_sec/1e9,   'r:','LineWidth',2);  % tendency
 
+
 end
-legend('river','shelf','vert top','vert base','mix top','mix base','SUM', 'tendency', 'Location','northwest');
+legend('River','Shelf','Top','Base','SUM', 'tendency', 'Location','northwest');
 
 ylabel('Freshwater transport (km^3)');
 xlabel('day');
-title(['Cumulative freshwater transport ' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), ' m']);
+titleName= ['Cumulative freshwater transport ' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), ' m'];
+title(titleName);
 
 grid on;
 
@@ -199,9 +227,6 @@ figure('Name','Cumulative_Volume_budget')
 subplot(1,1,1); hold on;
 s.date = datetime(s.t, 'ConvertFrom', 'datenum');
 
-nFluxes = 6; % river, shelf, vert top, vert base, mix top, mix base
-fluxColors = parula(nFluxes); % consistent colormap for flux terms
-
 % Volume flux subplot (cumulative)
 plot(s.date, cumsum(Q_river),      'Color', fluxColors(1,:), 'LineWidth',2);
 plot(s.date, cumsum(Q_shelf),      'Color', fluxColors(2,:), 'LineWidth',2);
@@ -210,30 +235,168 @@ plot(s.date, cumsum(Q_vert_base),  'Color', fluxColors(4,:), 'LineWidth',2);
 plot(s.date, cumsum(Q_mix_top),    'Color', fluxColors(5,:), 'LineWidth',2);
 plot(s.date, cumsum(Q_mix_base),   'Color', fluxColors(6,:), 'LineWidth',2);
 plot(s.date, cumsum(Q_sum),        'k--','LineWidth',2); % total
-legend('river','shelf','vert top','vert base','mix top','mix base','SUM');
+legend('River','Shelf','vert top','vert base','mix top','mix base','SUM');
 ylabel('Cumulative Volume flux (m^3/s)');
-title('Cumulative Volume Flux Terms');
+% title('Cumulative Volume Flux Terms');
 
 
 %%
 
 
-
-
 % t: datetime vector (Nx1)
 % FW_shelf: numeric vector or matrix with N rows (N x M)
-tt = timetable(s.date.', FW_shelf.', 'VariableNames', {'FW_shelf'});                         % create timetable
+tt = timetable(s.date.', FW_river.', FW_shelf.', 'VariableNames', {'FW_river', 'FW_shelf'});   
+tt.FW_to_shelf = FW_to_shelf.';
+tt.FW_to_fjord = FW_to_fjord.';
 monthlyTT = retime(tt, 'monthly', @(x) mean(x,'omitnan'));% monthly mean, ignores NaNs
 
 % Plot (if FW_shelf is a vector)
-figure
-plot(monthlyTT.Time, monthlyTT.FW_shelf, '-o')
+figExport = figure; hold on;
+% plot(monthlyTT.Time, monthlyTT.FW_river, '--', 'Color', fluxColors(1,:), 'LineWidth',2, 'DisplayName', 'River input');
+% plot(monthlyTT.Time, monthlyTT.FW_shelf*-1, '-o',  'Color', c_shelf_net, 'LineWidth',2, 'DisplayName', 'Net Shelf Export');
+plot(monthlyTT.Time, monthlyTT.FW_to_shelf, '-^', 'Color',c_shelf_out, 'LineWidth',2, 'DisplayName', 'Shelf Export');
+plot(monthlyTT.Time, monthlyTT.FW_to_fjord, '-v',  'Color', c_shelf_in ,'LineWidth',2, 'DisplayName', 'Shelf Import');
+legend()
+ylim([-50,500])
+
 xlabel('Time')
-ylabel('FW\_shelf (monthly mean)')
-title('Monthly Mean of FW\_shelf')
+ylabel('Transport (m^3 s^-1)')
+% title('Monthly Mean of FW\_shelf')
 grid on
 
-% If FW_shelf has multiple columns (locations), plot all columns and add legend
-% legendNames = arrayfun(@(k) sprintf('Loc %d',k), 1:size(monthlyTT.FW_shelf,2), 'UniformOutput', false);
-% plot(monthlyTT.Time, monthlyTT.FW_shelf)
-% legend(legendNames)
+% folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
+figName = [folder_fig, 'FW_budget/', 'Freshwater_export_' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), 'm']
+% figName = [folder_fig, 'FW_budget/', 'River_and_Freshwater_export_' num2str(z_bnd(1)), '-', num2str(z_bnd(2)), 'm']
+% % Save as PNG image — high quality
+exportgraphics(figExport, [figName '.png'], 'Resolution', 300);
+
+
+
+%%
+FW_shelf_layer_profile = FW_shelf_layer ./s.H; 
+figure();
+contourf(s.t, s.z, FW_shelf_layer_profile)
+ylim([-110, -5])
+
+% colorbar 
+colormap(divergingCMap(c_shelf_in, c_shelf_out, 40));
+colorbar;
+
+cmax = 150;
+caxis([-cmax cmax]);
+
+
+% Mean over full period (only 2018–2019, if desired)
+idx_all = year(s.date) >= 2018 & year(s.date) <= 2019;
+FW_shelf_profile = mean(FW_shelf_layer_profile(:, idx_all), 2);
+
+% Mean over April–June 2018–2019
+idx_456 = (ismember(month(s.date), [4 5 6])) & ...
+          (year(s.date) >= 2018 & year(s.date) <= 2019);
+
+FW_shelf_profile456 = mean(FW_shelf_layer_profile(:, idx_456), 2);
+
+% Mean over May–Sep 2018–2019
+idx_5_8 = (ismember(month(s.date), [ 5 6 7 8 9 ])) & ...
+          (year(s.date) >= 2018 & year(s.date) <= 2019);
+
+FW_shelf_profile5_8 = mean(FW_shelf_layer_profile(:, idx_5_8), 2);
+
+
+% Mean over May–Sep 2018–2019
+idx_5_8_19 = (ismember(month(s.date), [ 5 6 7 8 9 ])) & ...
+          ( year(s.date) == 2019);
+
+FW_shelf_profile5_8_19 = mean(FW_shelf_layer_profile(:, idx_5_8_19), 2);
+
+
+% Mean over May–Sep 2018–2019
+idx_5_8_18 = (ismember(month(s.date), [ 5 6 7 8 9 ])) & ...
+          (year(s.date) == 2018 );
+
+FW_shelf_profile5_8_18 = mean(FW_shelf_layer_profile(:, idx_5_8_18), 2);
+
+
+idx_91011 = (ismember(month(s.date), [ 9 10 11 ])) & ...
+          (year(s.date) >= 2018 & year(s.date) <= 2019);
+
+FW_shelf_profile910111 = mean(FW_shelf_layer_profile(:, idx_91011), 2);
+
+
+idx_winter18 = (ismember(month(s.date), [ 1 2 3 ])) & ...
+          (year(s.date) == 2018 );
+
+FW_shelf_profileidx_winter18 = mean(FW_shelf_layer_profile(:, idx_winter18), 2);
+
+
+
+idx_winter19 = (ismember(month(s.date), [ 1 2 3 ])) & ...
+          (year(s.date) == 2019 );
+
+FW_shelf_profileidx_winter19 = mean(FW_shelf_layer_profile(:, idx_winter19), 2);
+%
+
+% Plot
+figure;
+hold on;
+
+plot(FW_shelf_profile, s.z, ...
+     'LineWidth', 2,   'DisplayName', 'Mean 2018–2019');
+
+plot(FW_shelf_profile456, s.z, ...
+     'LineWidth', 2,  'LineStyle', '--', ...
+     'DisplayName', 'Apr–Jun (2018–2019)');
+
+plot(FW_shelf_profile5_8, s.z, ...
+     'LineWidth', 2, 'LineStyle', '--', ...
+     'DisplayName', 'May–August (2018–2019)');
+
+plot(FW_shelf_profile5_8_18, s.z, ...
+     'LineWidth', 2, 'LineStyle', '--', ...
+     'DisplayName', 'May–August (2018)');
+
+
+plot(FW_shelf_profile5_8_19, s.z, ...
+     'LineWidth', 2, 'LineStyle', '--', ...
+     'DisplayName', 'May–August (2019)');
+
+plot(FW_shelf_profile910111, s.z, ...
+     'LineWidth', 2, 'LineStyle', '--', ...
+     'DisplayName', 'Sep-Nov (2018–2019)');
+
+
+plot(FW_shelf_profileidx_winter18, s.z, ...
+     'LineWidth', 2, 'LineStyle', '--', ...
+     'DisplayName', 'Jan-Mar (2018)');
+
+plot(FW_shelf_profileidx_winter19, s.z, ...
+     'LineWidth', 2, 'LineStyle', '--', ...
+     'DisplayName', 'Jan-Mar (2019)');
+
+xlabel('m^3/s');
+ylabel('Depth (m)');
+ylim([-110 0]);
+grid on;
+legend('Location','best');
+
+
+
+function custom_cmap = divergingCMap(c_neg, c_pos, nColors)
+    % divergingCMap creates a colormap from c_neg -> white -> c_pos
+    % Inputs:
+    %   c_neg   - RGB color for negative values (1x3)
+    %   c_pos   - RGB color for positive values (1x3)
+    %   nColors - total number of colors (default 256)
+    
+    if nargin < 3
+        nColors = 500;
+    end
+    
+    nHalf = floor(nColors/2);
+    midColor = [1 1 1]; % white in the middle
+
+    cmap_neg = interp1([0 1], [c_neg; midColor], linspace(0,1,nHalf));
+    cmap_pos = interp1([0 1], [midColor; c_pos], linspace(0,1,nColors-nHalf));
+    
+    custom_cmap = [cmap_neg; cmap_pos];
+end

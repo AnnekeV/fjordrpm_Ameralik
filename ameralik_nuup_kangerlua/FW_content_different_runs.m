@@ -69,6 +69,9 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
             FW_obs = fw_content(Am.S, -Am.depths, Am.dz, Sref, depth_ranges(k,1), depth_ranges(k,2));
             plot(Am.dates, FW_obs, '-k', 'LineWidth',1.3, 'DisplayName','Obs');
         end
+            FW_shelf = fw_content(s.Ss, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
+            plot(s.date, FW_shelf, ':k', 'LineWidth',1.5, ...
+                 'DisplayName','Shelf');
 
         xlim([datetime(2018,1,1), datetime(2020,1,1)]); ylim([ 0 6]);
         ylabel('FW (m)');
@@ -94,8 +97,7 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
     end
     
     % Put legend in the last axis (not on layout object)
-    legend(ax(1), 'Location', 'best');
-
+    legend(ax(1), 'Location', 'best', 'box', 'off')                        % <= Change This Line
 end
 
 
@@ -108,18 +110,32 @@ sims = {
     load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
     load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
     load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s,
-     load('ameralik_combined_Kb1e-03_C01e+05_2019_only.mat', 's').s
+     % load('ameralik_combined_Kb1e-03_C01e+05_2019_only.mat', 's').s,
+     % load('ameralik_combined_Kb1e-03_C01e+05_2019_FW_for_2018_shelf').s,
+     % load('ameralik_combined_Kb1e-03_C01e+05_2018_shelf_for_2019').s,    
+     % load('ameralik_combined_Kb1e-03_C01e+05_double_runoff').s,  
+     % load('ameralik_combined_Kb1e-03_C01e+04_double_runoff').s,  
+     %    load('ameralik_combined_Kb1e-04_C01e+04_subglacial').s,
+     % load('ameralik_combined_Kb1e-03_C01e+05_subglacial').s,
+     % load('ameralik_combined_Kb1e-03_C01e+04_subglacial').s,
+
 
     };
 simNames = {
     'Low mix - Low shelfX',
     'Low mix - High shelfX',
-    'High mix - High shelfX',
     'High mix - Low shelfX', 
+    'High mix - High shelfX',
       'Very high mix - Low ShelfX',
-
     'Very high mix - High ShelfX',
-    'Very high mix - High ShelfX - 2019 only',
+    % 'Very high mix - High ShelfX - 2019 only',
+    % '2019 FW 2018 Shelf and rest',
+    % '2018 Shelf for 2019',
+    % 'Double runoff - Very high mix - High ShelfX',
+     % % 'Double runoff - Very high mix - Low shelfX',
+     %      'Subglacial - High mix - Low shelfX',
+     % 'Subglacial - Very high mix - Low shelfX',
+     % 'Subglacial - Very high mix - High shelfX',
 
     };
 

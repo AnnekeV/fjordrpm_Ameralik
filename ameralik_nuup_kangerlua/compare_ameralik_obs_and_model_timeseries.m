@@ -38,57 +38,84 @@ for i = 1:length(target_depths)
     closest_idx_obs(i) = idx_obs;
 end
 
+%% TEMPERATURE PLOT (shared limits, compact layout)
 
+fig = figure;
+tiledlayout(length(target_depths),1, 'TileSpacing','compact'); % tighter spacing
 
+colors = lines(length(target_depths));
 
-%% TEMPARTURE PLOT
+% Precompute shared limits
+xlims = [datetime(2019,1,1) datetime(2019,12,31)];
+ylims_T = [min(obs_T(:),[],'omitnan') min(s.T(:),[],'omitnan'); ...
+           max(obs_T(:),[],'omitnan') max(s.T(:),[],'omitnan')];
+ylims_T = [min(ylims_T(:)) max(ylims_T(:))];
 
-
-fig = figure; hold on;
-colors = lines(length(target_depths));  % distinct colors
-
-% give every target depth another color
 for i = 1:length(target_depths)
+    ax = nexttile; hold on;
     plot(model_dates, s.T(closest_idx_mod(i), :),'--','LineWidth',1.5, 'Color', colors(i,:))
     plot(obs_dates, obs_T(closest_idx_obs(i), :), '-','LineWidth',1.5, 'Color', colors(i,:))
-    
+
+    legend({sprintf('Model %d m', target_depths(i)), ...
+            sprintf('Observations %d m', target_depths(i))}, 'Location','best');
+    xlim(xlims); ylim(ylims_T);
+    grid on; box on;
+    ylabel('Temp (°C)');
+    title(sprintf('%d m', target_depths(i)));
+
+    % Remove xlabels and xticks for all but bottom tile
+    if i < length(target_depths)
+        ax.XTickLabel = [];
+        xlabel('');
+    else
+        xlabel('Date');
+    end
 end
 
+saveas(fig, fullfile(saveFolder, ['Timeseries_comparison_T_' savename '.png']));
 
-legend_strings = strings(1, 2*length(target_depths));
+
+%% SALINITY PLOT (shared limits, compact layout)
+
+fig = figure;
+tiledlayout(length(target_depths),1, 'TileSpacing','compact');
+
+colors = lines(length(target_depths));
+
+% Precompute shared limits
+ylims_S = [min(obs_S(:),[],'omitnan') min(s.S(:),[],'omitnan'); ...
+           max(obs_S(:),[],'omitnan') max(s.S(:),[],'omitnan')];
+ylims_S = [min(ylims_S(:)) max(ylims_S(:))];
 
 for i = 1:length(target_depths)
-    legend_strings(2*i-1) = sprintf('Model %d m', target_depths(i));
-    legend_strings(2*i)   = sprintf('Observations %d m', target_depths(i));
-end
-
-legend(legend_strings, 'Location', 'best');
-xlim([datetime(2019,1,1) datetime(2019,12,31)]);
-grid on; box on;
-xlabel('Date'); ylabel('Temperature (°C)');
-saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/comparison_obs_model_timeseries';
-filename = fullfile(saveFolder, ['Timeseries_comparison_T_' savename '.png']);
-saveas(fig, filename); 
-
-
-%% SALINITY PLOT
-
-fig = figure; hold on;
-colors = lines(length(target_depths));  % distinct colors
-
-% plot for everytargetdepth
-for i = 1:length(target_depths)
+    ax = nexttile; hold on;
     plot(model_dates, s.S(closest_idx_mod(i), :),'--','LineWidth',1.5, 'Color', colors(i,:))
     plot(obs_dates, obs_S(closest_idx_obs(i), :), '-','LineWidth',1.5, 'Color', colors(i,:))
-    
+
+    legend({sprintf('Model %d m', target_depths(i)), ...
+            sprintf('Observations %d m', target_depths(i))}, 'Location','best');
+    xlim(xlims); ylim(ylims_S);
+    grid on; box on;
+    ylabel('Salinity (PSU)');
+    title(sprintf('%d m', target_depths(i)));
+
+    if i < length(target_depths)
+        ax.XTickLabel = [];
+        xlabel('');
+    else
+        xlabel('Date');
+    end
 end
 
+saveas(fig, fullfile(saveFolder, ['Timeseries_comparison_S_' savename '.png']));
 
-legend(legend_strings, 'Location', 'best');
-xlim([datetime(2019,1,1) datetime(2019,12,31)]);
-grid on; box on;
-xlabel('Date'); ylabel('Salinity (PSU)')
-filename = fullfile(saveFolder, ['Timeseries_comparison_S_' savename '.png']);
-saveas(fig, filename); 
-
+% 
+% 
+% legend(legend_strings, 'Location', 'best');
+% xlim([datetime(2019,1,1) datetime(2019,12,31)]);
+% grid on; box on;
+% xlabel('Date'); ylabel('Salinity (PSU)')
+% filename = fullfile(saveFolder, ['Timeseries_comparison_S_' savename '.png']);
+% saveas(fig, filename); 
+% 
 

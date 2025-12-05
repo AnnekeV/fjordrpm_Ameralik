@@ -178,11 +178,14 @@ set(gca,'box','on'); grid on; title('VERTICAL ADVECTIVE');
 
 % total fluxes
 nexttile(bigTile); hold on;
-plot(s.t_date,s.Qr,'linewidth',lw);
+plot(s.t_date,s.Qr,'linewidth',lw, 'DisplayName','river')
+plot(s.t_date,s.Qsg,'linewidth',lw, 'DisplayName','Subglacial')
 ylabel('total flux (m$^3$/s)');
-legend('river','location','best');
+legend('location','best');
 title('freshwater inputs');
 set(gca,'box','on'); grid on;
+
+
 
 % air temperature
 nexttile(bigTile); hold on;

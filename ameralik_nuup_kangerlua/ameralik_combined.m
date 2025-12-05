@@ -17,15 +17,11 @@ addpath(genpath(path2sourcecode));
 p = default_parameters;
 p = parameters_ameralik;
 
+Kb_vals = [1e-3, 1e-4, 1e-5]; % vertical mixing
+C0_vals = [1e4, 1e5];  % shelf exchange
 
-p.Kb = 1e-3; % vertical mixing
-p.C0 = 1e5; % shelf exchange
 
 % set up model layers
-% H_layer_deep  = 2;  % layer thickness deeper in fjord
-% % a.H0 = [[1, 1, 2, 3, 5, 8 ].'; H_layer_deep*ones(((p.H-20)/10),1)];   % layer thicknesses
-% p.N = 350;
-% a.H0 = (p.H/p.N)*ones(p.N,1); % layer thicknesses, here taken to be equal
 % Layer thicknesses
 layers_1m   = ones(20,1);          % first 20 m, 1 m layers
 layers_2m   = 2*ones((50-20)/2,1); % 20–50 m, 2 m layers
@@ -89,7 +85,15 @@ runoff =  (T_GIC.runoff_m3_s + T_GrIS.runoff_m3_s + T_Tundra.runoff_m3_s);
 
 % extend freshwater time series so can be run for a year
 t_runoff = datenum(T_GIC.time(:)).'; % 1xN or Nx1 -> row later
+
+% % convert to datetime, subtract one calendar year, convert back to datenum (row)
+% dt = datetime(t_runoff, 'ConvertFrom', 'datenum');  % datetime array
+% dt_minus1y = dt - calyears(1);                      % subtract 1 calendar year
+% t_runoff_minus1y = datenum(dt_minus1y).';           % back to datenum, row 1xN
+% t_runoff = t_runoff_minus1y;
+
 runoff = runoff(:).';             % 1xN
+
 t_runoff = t_runoff(:).';               % 1xN
 runoff_ext = [runoff(1), runoff, runoff(end)];   % prepend first value and append last value
 dt = median(diff(t_runoff)); % infer spacing for times: use median diff to be robust for nonuniform grids
@@ -97,6 +101,7 @@ t_runoff_ext = [t_runoff(1)-dt, t_runoff, t_runoff(end)+dt]; % prepend one time 
 f.Qr = interp1(t_runoff_ext,runoff_ext,f.tsurf,'linear')  ;
 f.Tr = 0*f.tsurf; % temperature of riverine input
 f.Sr = 0*f.tsurf; % salinity of riverine input
+
 
 
 % it is importatnt that t in forcing is the same length for both
@@ -114,7 +119,7 @@ f.Sr = 0*f.tsurf; % salinity of riverine input
 folder_profiles = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/CTDs/';
 individual_profiles = { ...
   '20180110_HS180110',  '20180226_HS180226',  '20180312_HS180312',  '20180419_HS180419', ...
-    '20180524_HS180524',  '20180619_HS180619',  '20180730_HS180730',  '20181119_HS181119', ...
+    '20180524_HS180524',  '20180619_HS180619',  '20180730_HS180730',  '20180824_HS180824', '20180924_HS180924', '20181119_HS181119', ...
     '20181128_HS181128',  '20181217_HS181217',  '20190123_HS190123',  '20190213_HS190213', ...
     '20190328_HS190328',  '20190423_HS190423',  '20190514_HS190514',  '20190521_HS190521', ...
     '20190619_HS190619',  '20190716_HS190716',  '20190819_HS190819',  '20190916_GF19131', ...
@@ -145,6 +150,8 @@ for k=1:length(individual_profiles),
     salinity = data.salinity; % Salinity profile
     temperature = data.potential_temperature; % Temperature profile
     time_CTD = datenum(datetime(data.datedatetime(1)));
+    
+
 
     f.Ss(:,k) = salinity;
     f.Ts(:,k) = temperature;
@@ -156,11 +163,17 @@ f.Ts = [f.Ts(:,1), f.Ts, f.Ts(:,end)];
 f.Ss = [f.Ss(:,1), f.Ss, f.Ss(:,end)];
 f.zs = depth'; % depth vector for shelf forcing (negative below surface)
 
-
 % set up subglacial discharge forcing
 % in this example there is no subglacial discharge
 f.tsg = t; % time vector for subglacial discharge
 f.Qsg = 0*f.tsg; % subglacial discharge on tsg
+
+% f.Qsg = interp1(f.tsurf, f.Qr, f.tsg, 'linear');
+% f.Qr = 0*f.tsurf;
+p.Hgl = 200; 
+p.Wp=200;
+total_input = mean(f.Qsg)*60*60*24*365/1e9
+
 
 % % fjord initial conditions
 % % set up to be same as  average of winter profiles in Ameralik
@@ -175,14 +188,22 @@ a.I0 = 0*a.H0;
 
 % run the model
 % p.plot_runtime = 1; % plot while simulation runs - fun but quite slow
-s = run_model(p, t, f, a);
 
 
 
-% save the output
-% assume p.Kb and p.C0 exist
-savename = sprintf('ameralik_combined_Kb%0.0e_C0%0.0e.mat', p.Kb, p.C0);
-save(savename, 's', 'p', 't', 'f', 'a');
+
+for i = 1:numel(C0_vals)
+    p.C0 = C0_vals(i);
+    for j = 1:numel(Kb_vals)
+        p.Kb = Kb_vals(j);
+        s = run_model(p, t, f, a);  
+        s.rho = calculateDensity(s.S, s.T);
+        
+        % save the output
+        savename = sprintf('ameralik_combined_Kb%0.0e_C0%0.0e.mat', p.Kb, p.C0);
+        save(savename, 's', 'p', 't', 'f', 'a');
+    end
+end
 
 %%
 
@@ -196,53 +217,52 @@ savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NI
 % PLOT AND SAVE FW CONTENT
 titleStr = sprintf('Kb=%0.0e C0=%0.0e', p.Kb, p.C0);
 depth_ranges = [0 50; 50  110];%; 200 500];
-figFW = plotFWcontent(AM5, s, 33.3, depth_ranges, titleStr);
+% figFW = plotFWcontent(AM5, s, 33.3, depth_ranges, titleStr);
 folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
 saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
 base =  fullfile(saveFolder_ts, 'FW_content');
 fname = sprintf('%s_Kb_%0.0e_C0_%0.0e_layers.png', base, p.Kb, p.C0);   % e.g. "..._Kb_1e-05.png"
-print(figFW, fname, '-dpng', '-r300');
-saveFigure(figFW, fname, 11, 6, 300);
+% print(figFW, fname, '-dpng', '-r300');
+% saveFigure(figFW, fname, 11, 6, 300);
 
 
 % %%
 % PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
 target_depths = [50 100 200 400];
-figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'T', titleStr); % temeperature
+% figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'T', titleStr); % temeperature
 
 
 base = fullfile(saveFolder_ts, 'Temperature');
 savenameT = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);
-saveFigure(figT, savenameT, 9,6);
+% saveFigure(figT, savenameT, 9,6);
 
-figS = plotCompareObsModelTimeseries(AM5, s, target_depths, 'S', titleStr);  % salinity
+% figS = plotCompareObsModelTimeseries(AM5, s, target_depths, 'S', titleStr);  % salinity
 base =  fullfile(saveFolder_ts, 'Salinity');
 savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
-saveFigure(figS, savenameS, 9,6);
+% saveFigure(figS, savenameS, 9,6);
 % 
 
 target_depths = [50 100 200 400];
-s.rho = calculateDensity(s.S, s.T);
-figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'rho', titleStr); % temeperature
-figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7]);
+% figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'rho', titleStr); % temeperature
+% figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7]);
 base =  fullfile(saveFolder_ts, 'Surfer_dens');
-saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0), 9,6);
+% saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0), 9,6);
 
 %%
 % % make basic plots of the output
 % plotrpm(p,s,25);
 % 
-title=  'Model Summary Ameralik Combi Initial fjord Smaller layers And Spinup';
-% plotrpm_no_glacier(p,s,a, 25,  title)
+title=  sprintf('%s K_b %0.0e C_0 %0.0e', "River", p.Kb, p.C0);
+plotrpm_no_glacier(p,s,a, 25,  title)
 fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
    strrep(title, ' ', '_'));
-% exportgraphics(gcf, [fname '.pdf'], 'ContentType', 'vector');
+saveFigure(gcf,[fname '.png']);
 
 % 
 
 
 % PLOT PROFILES FOR T AND S AND COMPARE WITH OBS
-figPRO = plotCompareObsModelProfiles(Ameralik_mean, s);
+% figPRO = plotCompareObsModelProfiles(Ameralik_mean, s);
 base =  fullfile(folder_fig, 'comparison_obs_model_CTD_all', 'All_profiles_2019');
 savenamePROFILES =  sprintf('%s_Kb_%0.0e_C0_%0.0e_layers_different.png', base, p.Kb, p.C0);   
 % saveFigure(figPRO, savenamePROFILES, 20, 12, 300);
