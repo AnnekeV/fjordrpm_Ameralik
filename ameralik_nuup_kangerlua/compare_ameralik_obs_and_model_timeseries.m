@@ -1,9 +1,19 @@
 
+folder_paths; % for saveFolderTS
 
 %% Load data
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
-load('ameralik_combined_with_spinup_strong_mixing.mat'); 
-savename = 'withSpinupStrongMixing';
+load(fullfile(saveFolder,'Ameralik_AM5.mat'));
+% Load first model (already loaded)
+load('ameralik_combined_Kb1e-03_C01e+05.mat')  % strong mixing
+s_very_high_mix = s;  % store as s1
+
+% Load second model
+load('ameralik_combined_Kb1e-05_C01e+05.mat')  % weak mixing
+s_high_mix = s;  % store as s2
+savename = 'very_high_mixing';
+
+
 
 %%
 
@@ -12,13 +22,14 @@ model_dates = datetime(s.t,'ConvertFrom','datenum');
 model_depths = s.z;
 
 % Observation dates
-% onlykeep  columns that are  notall NaN
-validMask = ~all(isnan(Ameralik_mean.T), 1);
-% to keep only those columns
-obs_dates = Ameralik_mean.dates(validMask);
-obs_depths = Ameralik_mean.depths;
-obs_T = Ameralik_mean.T(:,validMask);
-obs_S = Ameralik_mean.S(:,validMask);
+Ameralik_obs = AM5;
+
+validMask = ~all(isnan(Ameralik_obs.T), 1);
+obs_dates = Ameralik_obs.dates(validMask);
+obs_depths = Ameralik_obs.depths;
+obs_T = Ameralik_obs.T(:,validMask);
+obs_S = Ameralik_obs.S(:,validMask);
+obs_rho =  Ameralik_obs.rho(:,validMask);
 
 
 
@@ -26,6 +37,9 @@ obs_S = Ameralik_mean.S(:,validMask);
 %% Find closest model depth for target epth
 
 target_depths = [50, 100, 200, 400];
+
+target_depths = [50, 100, 200];
+
 
 closest_idx_obs = zeros(length(target_depths),1);
 closest_idx_mmod = zeros(length(target_depths),1);
@@ -38,84 +52,91 @@ for i = 1:length(target_depths)
     closest_idx_obs(i) = idx_obs;
 end
 
-%% TEMPERATURE PLOT (shared limits, compact layout)
 
+%% ONE FIGURE WITH THREE TILES: TEMPERATURE, SALINITY, DENSITY
 fig = figure;
-tiledlayout(length(target_depths),1, 'TileSpacing','compact'); % tighter spacing
-
+tiledlayout(2,1, 'TileSpacing','compact'); % three tiles stacked vertically
 colors = lines(length(target_depths));
+xlims = [datetime(2018,1,1) datetime(2019,12,31)];
 
-% Precompute shared limits
-xlims = [datetime(2019,1,1) datetime(2019,12,31)];
-ylims_T = [min(obs_T(:),[],'omitnan') min(s.T(:),[],'omitnan'); ...
-           max(obs_T(:),[],'omitnan') max(s.T(:),[],'omitnan')];
-ylims_T = [min(ylims_T(:)) max(ylims_T(:))];
+%% TEMPERATURE TILE
+ax1 = nexttile; hold on;
 
 for i = 1:length(target_depths)
-    ax = nexttile; hold on;
-    plot(model_dates, s.T(closest_idx_mod(i), :),'--','LineWidth',1.5, 'Color', colors(i,:))
-    plot(obs_dates, obs_T(closest_idx_obs(i), :), '-','LineWidth',1.5, 'Color', colors(i,:))
-
-    legend({sprintf('Model %d m', target_depths(i)), ...
-            sprintf('Observations %d m', target_depths(i))}, 'Location','best');
-    xlim(xlims); ylim(ylims_T);
-    grid on; box on;
-    ylabel('Temp (°C)');
-    title(sprintf('%d m', target_depths(i)));
-
-    % Remove xlabels and xticks for all but bottom tile
-    if i < length(target_depths)
-        ax.XTickLabel = [];
-        xlabel('');
-    else
-        xlabel('Date');
-    end
+    plot(model_dates, s_very_high_mix.T(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
+    % plot(model_dates, s_high_mix.T(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+    plot(obs_dates, obs_T(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
 end
+ylabel('Potential temperature (°C)');
+grid off; box off;
 
-saveas(fig, fullfile(saveFolder, ['Timeseries_comparison_T_' savename '.png']));
-
-
-%% SALINITY PLOT (shared limits, compact layout)
-
-fig = figure;
-tiledlayout(length(target_depths),1, 'TileSpacing','compact');
-
-colors = lines(length(target_depths));
-
-% Precompute shared limits
-ylims_S = [min(obs_S(:),[],'omitnan') min(s.S(:),[],'omitnan'); ...
-           max(obs_S(:),[],'omitnan') max(s.S(:),[],'omitnan')];
-ylims_S = [min(ylims_S(:)) max(ylims_S(:))];
+%% SALINITY TILE
+ax2 = nexttile; hold on;
 
 for i = 1:length(target_depths)
-    ax = nexttile; hold on;
-    plot(model_dates, s.S(closest_idx_mod(i), :),'--','LineWidth',1.5, 'Color', colors(i,:))
-    plot(obs_dates, obs_S(closest_idx_obs(i), :), '-','LineWidth',1.5, 'Color', colors(i,:))
+    plot(model_dates, s_very_high_mix.S(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
+    % plot(model_dates, s_high_mix.S(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+    plot(obs_dates, obs_S(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
+end
+ylabel('Salinity (PSU)');
 
-    legend({sprintf('Model %d m', target_depths(i)), ...
-            sprintf('Observations %d m', target_depths(i))}, 'Location','best');
-    xlim(xlims); ylim(ylims_S);
-    grid on; box on;
-    ylabel('Salinity (PSU)');
-    title(sprintf('%d m', target_depths(i)));
+%% DENSITY TILE
+% ax3 = nexttile; hold on;
+% 
+% for i = 1:length(target_depths)
+%     plot(model_dates, s.rho(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
+%     plot(obs_dates, obs_rho(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
+% end
+% ylabel('Density (kg/m^3)');
+% 
+% % %% LEGEND (bottom tile)
+% legendStrings = [];
+% for i = 1:length(target_depths)
+%     legendStrings{end+1} = sprintf('Model %d m', target_depths(i));
+%     legendStrings{end+1} = sprintf('Obs %d m', target_depths(i));
+% end
+% % legend(ax3, legendStrings, 'Location', 'best'); % put legend in bottom tile
 
-    if i < length(target_depths)
-        ax.XTickLabel = [];
-        xlabel('');
-    else
-        xlabel('Date');
-    end
+
+%% Formatting
+
+% Array of axes
+axAll = [ax1, ax2];
+
+% Set x-limits and monthly ticks for all axes
+startDate = datetime(2018,1,1);
+endDate   = datetime(2019,12,31);
+for k = 1:length(axAll)
+    axAll(k).XLim = [startDate endDate];                     % x-limits
+    axAll(k).XTick = startDate:calmonths(1):endDate;        % monthly ticks
+end
+xtickformat('MMM');        % Format: Jan, Feb, Mar...
+% Remove x-axis labels for top tiles
+for k = 1:length(axAll)-1
+    axAll(k).XTickLabel = [];
 end
 
-saveas(fig, fullfile(saveFolder, ['Timeseries_comparison_S_' savename '.png']));
+% % Rotate labels only for bottom tile
+% axAll(end).XTickLabelRotation = 45;
 
-% 
-% 
-% legend(legend_strings, 'Location', 'best');
-% xlim([datetime(2019,1,1) datetime(2019,12,31)]);
-% grid on; box on;
-% xlabel('Date'); ylabel('Salinity (PSU)')
-% filename = fullfile(saveFolder, ['Timeseries_comparison_S_' savename '.png']);
-% saveas(fig, filename); 
-% 
 
+
+%% Create dummy lines for general legend
+% General legend handles
+hModel1 = plot(nan, nan, '--k', 'LineWidth', 1.5);   % Model Kb=1e-3
+hModel2 = plot(nan, nan, ':k', 'LineWidth', 1.5);    % Model Kb=1e-4
+hObs    = plot(nan, nan, '-k', 'LineWidth', 1.5);    % Observations
+
+% Depth colors
+hDepth = gobjects(length(target_depths),1);
+for i = 1:length(target_depths)
+    hDepth(i) = plot(nan, nan, '-', 'Color', colors(i,:), 'LineWidth', 1.5);
+end
+
+
+legendStrings = [      arrayfun(@(d) sprintf('%d m', d), target_depths, 'UniformOutput', false),  {'Observations', 'Model K_b=1e-3, C_0=1e5', }
+];
+legend(axAll(end), [hDepth', hObs, hModel1 ], legendStrings, 'Location', 'best', 'Box', false, 'NumColumns', 2);
+
+%% SAVE FIGURE
+saveas(fig, fullfile(saveFolder_ts, ['Timeseries_comparison_T_S' savename '.png']));

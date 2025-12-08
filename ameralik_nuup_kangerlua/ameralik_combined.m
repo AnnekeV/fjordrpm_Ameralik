@@ -8,6 +8,8 @@
 % clear workspace and close any figures to ensure clean environment
 clear; close all;
 
+folder_paths;
+
 % put FjordRPM code on path - need to update to the location of your code
 path2sourcecode = '/Users/annek/Documents/fjordrpm/';
 addpath(genpath(path2sourcecode));

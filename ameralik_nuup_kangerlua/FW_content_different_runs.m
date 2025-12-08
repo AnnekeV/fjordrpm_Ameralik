@@ -53,8 +53,12 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
 
     for k = 1:nDepths
         nexttile; hold on;
+        % Create depth range label
         drLabel = sprintf('%d–%d m', depth_ranges(k,1), depth_ranges(k,2));
-
+        
+        % Add a), b), c), ... depending on k
+        letter = char('a' + k - 1);  % 'a' for k=1, 'b' for k=2, etc.
+        drLabel = sprintf('%s) %s', letter, drLabel);
         % Plot fjord content from each simulation
         for sIdx = 1:nSims
             s = sims{sIdx};
@@ -69,14 +73,14 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
             FW_obs = fw_content(Am.S, -Am.depths, Am.dz, Sref, depth_ranges(k,1), depth_ranges(k,2));
             plot(Am.dates, FW_obs, '-k', 'LineWidth',1.3, 'DisplayName','Obs');
         end
-            FW_shelf = fw_content(s.Ss, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
-            plot(s.date, FW_shelf, ':k', 'LineWidth',1.5, ...
-                 'DisplayName','Shelf');
+            % FW_shelf = fw_content(s.Ss, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
+            % plot(s.date, FW_shelf, ':k', 'LineWidth',1.5, ...
+            %      'DisplayName','Shelf');
 
         xlim([datetime(2018,1,1), datetime(2020,1,1)]); ylim([ 0 6]);
-        ylabel('FW (m)');
+        ylabel('FW depthn (m)');
         title(sprintf('%s', drLabel));
-        grid on;
+        grid off; box off;
     end
 
     % After plotting, collect axes (in correct order)
@@ -145,11 +149,12 @@ load(fullfile(saveFolder,'Ameralik_AM5.mat'));
 load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 
 
-depth_ranges = [0 5;
+depth_ranges = [
+    % 0 5;
                 0 50;
-                50 110;
+                % 50 110;
                 50 200;
-                110 200;
+                % 110 200;
                 200 500;
                 ];
 
@@ -161,7 +166,7 @@ folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/Ph
 saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
 fig = plotFWcontentByDepthRange( ...
     AM5, sims, Sref, depth_ranges, ...
-    'FW Content Comparison', simNames, [3 2]);
+    'FW Content Comparison', simNames, [3 1]);
 base =  fullfile(saveFolder_ts, 'FW_Content_simulations_parameters');
-savenameS =  sprintf('%s_AM5.png', base);   
-saveFigure(fig, savenameS, 12,7);
+savenameS =  sprintf('%s_AM5_3_panels.png', base);   
+saveFigure(fig, savenameS, 10,7);

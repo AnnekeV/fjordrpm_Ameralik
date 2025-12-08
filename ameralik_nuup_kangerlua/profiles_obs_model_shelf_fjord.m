@@ -13,6 +13,8 @@ function fig = plotCompareObsModelProfilesMultiple(Ameralik_mean, sims, simNames
 %
 % OUTPUT:
 %   fig           - figure handle
+colors_ameralik;
+
 
 if nargin < 3 || isempty(simNames)
     simNames = arrayfun(@(k) sprintf('Sim%d', k), 1:numel(sims), 'UniformOutput', false);
@@ -57,14 +59,14 @@ for i = 1:nDates
     % Temperature tile
     axT = nexttile; hold(axT,'on');
 
-    plot(axT, Ameralik_mean.T(:,idx), -Ameralik_mean.depths, 'k','LineWidth',1.5,'DisplayName','Obs');
+    plot(axT, Ameralik_mean.T(:,idx), Ameralik_mean.depths, 'k','LineWidth',1.5,'DisplayName','Obs');
 
     s_idx_date = findClosestDate(sims{k}.date, obs_dates(idx));
-    plot(axT, sims{k}.Ts(:, s_idx_date),sims{k}.z, '-', 'LineWidth', 1.5, 'DisplayName', 'Shelf');
+    plot(axT, sims{k}.Ts(:, s_idx_date),-sims{k}.z, 'k:', 'LineWidth', 1.5, 'DisplayName', 'Shelf');
 
     % Plot all model runs, first fjord than shelf
     for k = 1:numel(sims)
-        plot(axT, sims{k}.T(:, s_idx_date), sims{k}.z, '--', 'LineWidth', 1.5, 'DisplayName', simNames{k});
+        plot(axT, sims{k}.T(:, s_idx_date), -sims{k}.z, '--', 'LineWidth', 1.5, 'DisplayName', simNames{k},  'Color', simColors(simNames{k}) );
     end
 
     grid(axT,'on'); xlabel(axT,'Temperature (°C)'); ylabel(axT,'Depth (m)');
@@ -78,16 +80,19 @@ for i = 1:nDates
 
     % Salinity tile
     axS = nexttile; hold(axS,'on');
-    plot(axS, Ameralik_mean.S(:,idx), -Ameralik_mean.depths, 'k','LineWidth',1.5,'DisplayName','Obs');
-    plot(axS, sims{k}.Ss(:, s_idx_date),sims{k}.z, '-', 'LineWidth', 1.5, 'DisplayName', 'Shelf');
-
+    plot(axS, Ameralik_mean.S(:,idx), Ameralik_mean.depths, 'k','LineWidth',1.5,'DisplayName','Obs');
+    plot(axS, sims{k}.Ss(:, s_idx_date),-sims{k}.z, 'k:', 'LineWidth', 1.5, 'DisplayName', 'Shelf');
+    
     % All model runs
     for k = 1:numel(sims)
-        plot(axS, sims{k}.S(:, s_idx_date), sims{k}.z, '--', 'LineWidth', 1.5, 'DisplayName', simNames{k});
+        plot(axS, sims{k}.S(:, s_idx_date), -sims{k}.z, '--', 'LineWidth', 1.5, 'DisplayName', simNames{k}, 'Color', simColors(simNames{k}) );
     end
 
     grid(axS,'on'); xlabel(axS,'Salinity (PSU)'); yticklabels(axS, {});
     xlim(axS, xlimS);
+    linkaxes([axS axT],'y');
+    ylim(axS, [0 50]);
+
 
     % Optional: number of observations
     if isfield(Ameralik_mean,'nProfilesperdate') && length(Ameralik_mean.nProfilesperdate) >= idx
@@ -98,7 +103,13 @@ for i = 1:nDates
     if i == nDates
         legend(axS,'Location', 'best'); 
     end
+
+
 end
+
+% Reverse y-direction for all axes in the figure
+allAxes = findall(gcf, 'Type', 'axes');
+set(allAxes, 'YDir', 'reverse');
 
 end
 
@@ -107,23 +118,25 @@ function idx = findClosestDate(dates, target)
 [~, idx] = min(abs(dates - target));
 end
 
+colors_ameralik;
 
 %% ----------------- Load simulations and observations -----------------
-sims = {
-    % load('ameralik_combined_Kb1e-04_C01e+04.mat','s').s, 
-    % load('ameralik_combined_Kb1e-05_C01e+04.mat','s').s, 
-    % load('ameralik_combined_Kb1e-05_C01e+05.mat','s').s, 
-    % load('ameralik_combined_Kb1e-04_C01e+05.mat','s').s, 
-    load('ameralik_combined_Kb1e-04_C01e+05.mat','s').s, 
-    % load('ameralik_combined_Kb1e-03_C01e+04.mat','s').s
-    };
 
-simNames = {'High mix - Low shelfX', 
-    'Low mix - Low shelfX',
-    'Low mix - High shelfX',
+sims = {
+    % load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
+    load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
+    load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s,
+    };
+simNames = {
+    % 'Low mix - Low shelfX',
+    % 'Low mix - High shelfX',
+    % 'High mix - Low shelfX', 
     'High mix - High shelfX',
+    %   'Very high mix - Low ShelfX',
     'Very high mix - High ShelfX',
-    'Very high mix - Low ShelfX'
     };
 
 % Load Ameralik observation structures
@@ -131,19 +144,20 @@ saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/Ph
 load(fullfile(saveFolder,'Ameralik_AM5.mat'));
 load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 
+
 %% ----------------- Plot: Compare obs vs multiple model runs -----------------
-close all;
 
 % Optional: define tile layout [nRows nCols]
 tileShape = [3 8]; % adjust based on number of observation dates
 
 fig = plotCompareObsModelProfilesMultiple(AM5, sims, simNames, tileShape,[-1,5],[ 25 34], [datetime(2019,1,1), datetime(2020,1,1)]) ;
 
+
 % Save figure
 folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
 saveFolder_ts = fullfile(folder_fig,'comparison_obs_model_CTD_all');
 base = fullfile(saveFolder_ts,'ObsModelShelfProfiles_comparison19');
-savenameS = sprintf('%s.png', base);
+savenameS = sprintf('%s_high_very_high_mixing_50m.png', base);
 
 
 % target size in inches and DPI

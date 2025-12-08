@@ -1,0 +1,2 @@
+folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
+saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');

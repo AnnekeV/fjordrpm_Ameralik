@@ -1,7 +1,7 @@
 
 load('ameralik_combined_Kb1e-03_C01e+05.mat'), 
 colors_ameralik;
-
+folder_paths; % for saveFolderTS
 
 %% VOLUME FLUXES ----------------------------------------------------------
 a.A0v = s.H*p.W; %area vertical
