@@ -55,6 +55,11 @@ s.QVv = s.QVv(:,inx);
 s.QTv = s.QTv(:,inx);
 s.QSv = s.QSv(:,inx);
 
+% convection fluxes
+s.QVc = s.QVc(:,inx);
+s.QTc = s.QTc(:,inx);
+s.QSc = s.QSc(:,inx);
+
 % surface fluxes
 s.QVsurf = s.QVsurf(:,inx);
 s.QTsurf = s.QTsurf(:,inx);
