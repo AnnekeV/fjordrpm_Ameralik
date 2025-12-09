@@ -23,6 +23,9 @@ if any(B < 0)
         inds = [inx(k), inx(k)+1];
         T(inds) = sum(T(inds).*V(inds))./sum(V(inds));
         S(inds) = sum(S(inds).*V(inds))./sum(V(inds));
+        % store associated fluxes
+        s.QTc(inds,i) = V(inds).*(T(inds)-s.T(inds,i))/(s.dt(i)*p.sid);
+        s.QSc(inds,i) = V(inds).*(S(inds)-s.S(inds,i))/(s.dt(i)*p.sid);
     end
 end
 
