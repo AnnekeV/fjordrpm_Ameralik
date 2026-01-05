@@ -3,10 +3,12 @@
 clear; close all;
 
 % load model output
-load ../examples/example5_riverine_input.mat
+% load ../examples/example5_riverine_input.mat
+load ameralik_combined_Kb1e-03_C01e+05.mat
 
 % define layers for budget (defining our box)
-layers = [1:20]; % [top layer:bottom layer]
+layers = [20:20]; % [top layer:bottom layer]
+layers = find(abs(s.z) >= 50 & abs(s.z) < 110);
 % reference salinity
 Sref = 34;
 
@@ -177,4 +179,68 @@ subplot(3,1,3); hold on;
 plot(s.t,salt_sum-salt_tendency,'k','linewidth',2);
 ylabel('salt closure');
 
+
+%% plots2
+
+
+load ameralik_combined_Kb1e-03_C01e+05.mat
+
+compute_budget2(s, p, [50,110],34)
+
+
+figure();
+subplot(3,1,1); hold on;
+plot(s.t,Q_river,'linewidth',2);
+plot(s.t,Q_shelf,'linewidth',2);
+plot(s.t,Q_vert_top,'linewidth',2);
+plot(s.t,Q_vert_base,'linewidth',2);
+plot(s.t,Q_mix_top,'linewidth',2);
+plot(s.t,Q_mix_base,'linewidth',2);
+plot(s.t,Q_con_top,'linewidth',2);
+plot(s.t,Q_con_base,'m','linewidth',2);
+plot(s.t,Q_sum,'k--','linewidth',2);
+legend('river','shelf','vert top','vert base','mix top','mix base','con top','con base','SUM');
+ylabel('volume flux term (m^3/s)');
+xlabel('day');
+
+subplot(3,1,2); hold on;
+plot(s.t,FW_river,'linewidth',2);
+plot(s.t,FW_shelf,'linewidth',2);
+plot(s.t,FW_vert_top,'linewidth',2);
+plot(s.t,FW_vert_base,'linewidth',2);
+plot(s.t,FW_mix_top,'linewidth',2);
+plot(s.t,FW_mix_base,'linewidth',2);
+plot(s.t,FW_con_top,'linewidth',2);
+plot(s.t,FW_con_base,'m','linewidth',2);
+plot(s.t,FW_sum,'k--','linewidth',2);
+plot(s.t,FW_tendency,'r:','linewidth',2);
+legend('river','shelf','vert top','vert base','mix top','mix base','con top','con base','SUM','tendency');
+ylabel('FW flux term (m^3/s)');
+xlabel('day');
+
+subplot(3,1,3); hold on;
+plot(s.t,salt_river,'linewidth',2);
+plot(s.t,salt_shelf,'linewidth',2);
+plot(s.t,salt_vert_top,'linewidth',2);
+plot(s.t,salt_vert_base,'linewidth',2);
+plot(s.t,salt_mix_top,'linewidth',2);
+plot(s.t,salt_mix_base,'linewidth',2);
+plot(s.t,salt_con_top,'linewidth',2);
+plot(s.t,salt_con_base,'m','linewidth',2);
+plot(s.t,salt_sum,'k--','linewidth',2);
+plot(s.t,salt_tendency,'r:','linewidth',2);
+legend('river','shelf','vert top','vert base','mix top','mix base','con top','con base','SUM','tendency');
+ylabel('salt flux term');
+xlabel('day');
+
+figure();
+subplot(3,1,1); hold on;
+plot(s.t,Q_sum,'k','linewidth',2);
+ylabel('volume closure');
+subplot(3,1,2); hold on;
+plot(s.t,FW_sum-FW_tendency,'k','linewidth',2);
+ylabel('FW closure');
+subplot(3,1,3); hold on;
+plot(s.t,salt_sum-salt_tendency,'k','linewidth',2);
+ylabel('salt closure');
 

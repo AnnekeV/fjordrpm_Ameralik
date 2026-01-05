@@ -36,11 +36,12 @@ p.N = length(a.H0); % number of layers
 
 
 % set up time stepping
-dt = 0.01; % time step (in days)
+dt = 0.005; % time step (in days)
 t_start = datenum(datetime(2018,1,1));
 t_end = datenum(datetime(2019,12,31));
 t = t_start:dt:t_end; % resulting time vector for simulation
-p.t_save = t_start:1:t_end; % times on which to save output
+p.t_save = t; % times on which to save output
+p.t_save = t_start:1:t_end;
 nt = length(t);
 
 % load initial profile Ameralik (first run open_previous_ctd.m)
