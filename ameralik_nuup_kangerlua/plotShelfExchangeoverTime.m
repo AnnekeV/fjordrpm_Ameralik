@@ -1,26 +1,34 @@
 
-load('ameralik_combined_Kb1e-03_C01e+05.mat'), 
+load('ameralik_combined_Kb1e-04_C01e+05.mat'), 
 colors_ameralik;
 folder_paths; % for saveFolderTS
 
 %% VOLUME FLUXES ----------------------------------------------------------
 a.A0v = s.H*p.W; %area vertical
+a.A0v = a.A0v(find(abs(s.z)<110));
 
-s.QVp = squeeze(sum(s.QVp,1)); % multiple plumes
+s.QVs = s.QVs(find(abs(s.z)<110), :);
 s.UVs = s.QVs ./ a.A0v;         % mean velocity
+
+s.z = s.z(find(abs(s.z)<110));
+
+
 
 % time vectors
 s.t_date = datetime(s.t, 'ConvertFrom','datenum');
 s.t_start = datetime(s.t(1), 'ConvertFrom','datenum', 'Format','d MMM yyyy');
 s.t_days_since_start = s.t - s.t(1);
 
+% first cut t
 
+close all;
 
 %%
 % plot filled contours (15 contour levels)
 nlevels = 25;
-% contourf(s.t, s.z, s.UVs, nlevels, 'LineColor', 'none'); 
-pcolor(s.UVs)
+nlevels=15;
+pcolor(s.t, s.z, s.UVs);%, nlevels, 'LineColor', 'none'); 
+% % pcolor(s.UVs)
 
 ylim([-115, 0])
 
@@ -65,12 +73,8 @@ ylabel('Depth');
 title('Shelf Exchange Over Time');
 
 
-% 
-% folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
-% base =  fullfile(folder_fig, 'Shelf_exchange');
-% savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e_layers.png', base, p.Kb, p.C0) ;
-% saveFigure(gcf, savenameS, 800, 600, 300);
-
+filename = fullfile(folder_fig, 'Shelf_exchange', 'FW_export_profile_very_high.png');
+exportgraphics(gcf, filename, 'Resolution',300);
 
 
 
