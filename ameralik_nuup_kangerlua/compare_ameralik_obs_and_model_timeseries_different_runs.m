@@ -194,7 +194,7 @@ function fig = plotSalinityByDepth(Am, sims, simNames, target_depths, titleStr, 
     xlim([datetime(2018,1,1)  datetime(2020,1,1)] )
 
 end
-target_depths = [10 50 100 200];
+target_depths = [ 50 100 200];
 
 
 
@@ -235,10 +235,10 @@ simNames = {
 
 figT = plotTemperatureByDepth(AM5, sims, simNames, target_depths, ...
     'Temperature Comparison', [2 2]);
-saveas(figT, fullfile(saveFolder_ts,'Temperature_comparison_multiSim.png'));
+% saveas(figT, fullfile(saveFolder_ts,'Temperature_comparison_multiSim.png'));
 
 figS = plotSalinityByDepth(AM5, sims, simNames, target_depths, ...
     'Salinity Comparison', [2 2]);
-saveas(figS, fullfile(saveFolder_ts,'Salinity_comparison_multiSim.png'));
+% saveas(figS, fullfile(saveFolder_ts,'Salinity_comparison_multiSim.png'));
 
 

@@ -5,13 +5,10 @@ folder_paths; % for saveFolderTS
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
 load(fullfile(saveFolder,'Ameralik_AM5.mat'));
 % Load first model (already loaded)
-load('ameralik_combined_Kb1e-03_C01e+05.mat')  % strong mixing
+load(    'ameralik_combined_Kb1e-03_C01e+05.mat')  % strong mixing
 s_very_high_mix = s;  % store as s1
 
-% Load second model
-load('ameralik_combined_Kb1e-05_C01e+05.mat')  % weak mixing
-s_high_mix = s;  % store as s2
-savename = 'very_high_mixing';
+savename = '_incl_5m_very_high_mixing';
 
 
 
@@ -38,7 +35,10 @@ obs_rho =  Ameralik_obs.rho(:,validMask);
 
 target_depths = [50, 100, 200, 400];
 
-target_depths = [50, 100, 200];
+target_depths = [50, 100, 200, 5];
+
+Tlims = [-2,8];
+Slims = [28, 33.5];
 
 
 closest_idx_obs = zeros(length(target_depths),1);
@@ -66,6 +66,7 @@ for i = 1:length(target_depths)
     plot(model_dates, s_very_high_mix.T(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
     % plot(model_dates, s_high_mix.T(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
     plot(obs_dates, obs_T(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
+    ylim(ax1, Tlims)
 end
 ylabel('Potential temperature (°C)');
 grid off; box off;
@@ -77,6 +78,7 @@ for i = 1:length(target_depths)
     plot(model_dates, s_very_high_mix.S(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
     % plot(model_dates, s_high_mix.S(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
     plot(obs_dates, obs_S(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
+    ylim(ax2, Slims)
 end
 ylabel('Salinity (PSU)');
 
@@ -134,7 +136,7 @@ for i = 1:length(target_depths)
 end
 
 
-legendStrings = [      arrayfun(@(d) sprintf('%d m', d), target_depths, 'UniformOutput', false),  {'Observations', 'Model K_b=1e-3, C_0=1e5', }
+legendStrings = [      arrayfun(@(d) sprintf('%d m', d), target_depths, 'UniformOutput', false),  {'Observations', 'Model', }
 ];
 legend(axAll(end), [hDepth', hObs, hModel1 ], legendStrings, 'Location', 'best', 'Box', false, 'NumColumns', 2);
 

@@ -19,8 +19,17 @@ addpath(genpath(path2sourcecode));
 p = default_parameters;
 p = parameters_ameralik;
 
-Kb_vals = [1e-3, 1e-4, 1e-5]; % vertical mixing
-C0_vals = [1e4, 1e5];  % shelf exchange
+save_extension_string = "_tidal";
+% save_extension_string = "";
+
+p.u_tide_max = 1 ; % ms-1
+p.period_tide = (12 + 25/60) / 24; % hours /24 hrs
+p.dz_tide = 110; % m
+p.phi = 0;   % phase (set as needed)
+
+
+Kb_vals = [1e-4]; % vertical mixing
+C0_vals = [1e5];  % shelf exchange
 
 
 % set up model layers
@@ -203,7 +212,7 @@ for i = 1:numel(C0_vals)
         s.rho = calculateDensity(s.S, s.T);
         
         % save the output
-        savename = sprintf('ameralik_combined_Kb%0.0e_C0%0.0e.mat', p.Kb, p.C0);
+        savename = sprintf('ameralik_combined_Kb%0.0e_C0%0.0e%s.mat', p.Kb, p.C0, save_extension_string);
         save(savename, 's', 'p', 't', 'f', 'a');
     end
 end
@@ -232,24 +241,21 @@ fname = sprintf('%s_Kb_%0.0e_C0_%0.0e_layers.png', base, p.Kb, p.C0);   % e.g. "
 % %%
 % PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
 target_depths = [50 100 200 400];
-% figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'T', titleStr); % temeperature
-
-
+figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'T', titleStr); % temeperature
 base = fullfile(saveFolder_ts, 'Temperature');
 savenameT = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);
 % saveFigure(figT, savenameT, 9,6);
 
-% figS = plotCompareObsModelTimeseries(AM5, s, target_depths, 'S', titleStr);  % salinity
+figS = plotCompareObsModelTimeseries(AM5, s, target_depths, 'S', titleStr);  % salinity
 base =  fullfile(saveFolder_ts, 'Salinity');
 savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
 % saveFigure(figS, savenameS, 9,6);
 % 
 
-target_depths = [50 100 200 400];
-% figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'rho', titleStr); % temeperature
-% figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7]);
+figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'rho', titleStr); % temeperature
+figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7]);
 base =  fullfile(saveFolder_ts, 'Surfer_dens');
-% saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0), 9,6);
+saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e%s.png', base, p.Kb, p.C0, save_extension_string), 9,6);
 
 %%
 % % make basic plots of the output
@@ -259,7 +265,7 @@ title=  sprintf('%s K_b %0.0e C_0 %0.0e', "River", p.Kb, p.C0);
 plotrpm_no_glacier(p,s,a, 25,  title)
 fname = fullfile('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/matlab_run_output', ...
    strrep(title, ' ', '_'));
-saveFigure(gcf,[fname '.png']);
+% saveFigure(gcf,[fname '.png']);
 
 % 
 

@@ -61,11 +61,16 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
         drLabel = sprintf('%s) %s', letter, drLabel);
         % Plot fjord content from each simulation
         for sIdx = 1:nSims
+            % Choose line style: even -> '--', odd -> '-'
+            if sIdx ==3
+                lineStyle = '--';
+            else
+                lineStyle = '-';
+            end
             s = sims{sIdx};
             s.date = datetime(s.t,'ConvertFrom','datenum');
             FW_fjord = fw_content(s.S, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
-            plot(s.date, FW_fjord, '--', 'Color', colors(sIdx,:), 'LineWidth',1.5, ...
-                 'DisplayName', simNames{sIdx});
+            plot(s.date, FW_fjord, lineStyle, 'Color', colors(sIdx,:), 'LineWidth',1.5, 'DisplayName', simNames{sIdx});
         end
 
         % Observations
@@ -108,11 +113,13 @@ end
 
 
 sims = {
-    load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
     load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
-    load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
     load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
-    load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
+         load('ameralik_combined_Kb1e-04_C01e+05_tidal.mat', 's').s, 
+
     load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s,
      % load('ameralik_combined_Kb1e-03_C01e+05_2019_only.mat', 's').s,
      % load('ameralik_combined_Kb1e-03_C01e+05_2019_FW_for_2018_shelf').s,
@@ -123,14 +130,15 @@ sims = {
      % load('ameralik_combined_Kb1e-03_C01e+05_subglacial').s,
      % load('ameralik_combined_Kb1e-03_C01e+04_subglacial').s,
 
-
     };
 simNames = {
-    'Low mix - Low shelfX',
+    % 'Low mix - Low shelfX',
     'Low mix - High shelfX',
-    'High mix - Low shelfX', 
+    % 'High mix - Low shelfX', 
     'High mix - High shelfX',
-      'Very high mix - Low ShelfX',
+      % 'Very high mix - Low ShelfX',
+           'High mix tidal - High shelf' 
+
     'Very high mix - High ShelfX',
     % 'Very high mix - High ShelfX - 2019 only',
     % '2019 FW 2018 Shelf and rest',
@@ -168,5 +176,5 @@ fig = plotFWcontentByDepthRange( ...
     AM5, sims, Sref, depth_ranges, ...
     'FW Content Comparison', simNames, [3 1]);
 base =  fullfile(saveFolder_ts, 'FW_Content_simulations_parameters');
-savenameS =  sprintf('%s_AM5_3_panels.png', base);   
+savenameS =  sprintf('%s_AM5_3_panels_tidal.png', base);   
 saveFigure(fig, savenameS, 10,7);

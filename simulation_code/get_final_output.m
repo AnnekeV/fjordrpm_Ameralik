@@ -24,6 +24,7 @@ s.t = t(inx);
 % layer properties
 s.T = s.T(:,inx);
 s.S = s.S(:,inx);
+s.Tracer = s.Tracer(:,inx);
 
 % plume fluxes
 s.QVp = s.QVp(:,:,inx);

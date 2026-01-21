@@ -1,5 +1,10 @@
+load ('ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+05_tidal.mat')
+save_name = 'FW_export_surfer_high_wtidal.png';
 
-load('ameralik_combined_Kb1e-04_C01e+05.mat'), 
+load('ameralik_combined_Kb1e-03_C01e+05.mat'), 
+save_name = 'FW_export_surfer_vhigh_notidal.png';
+
+
 colors_ameralik;
 folder_paths; % for saveFolderTS
 
@@ -27,7 +32,7 @@ close all;
 % plot filled contours (15 contour levels)
 nlevels = 25;
 nlevels=15;
-pcolor(s.t, s.z, s.UVs);%, nlevels, 'LineColor', 'none'); 
+contourf(s.t, s.z, s.UVs);%, nlevels, 'LineColor', 'none'); 
 % % pcolor(s.UVs)
 
 ylim([-115, 0])
@@ -72,8 +77,7 @@ colorbar;
 ylabel('Depth');
 title('Shelf Exchange Over Time');
 
-
-filename = fullfile(folder_fig, 'Shelf_exchange', 'FW_export_profile_very_high.png');
+filename = fullfile(folder_fig, 'Shelf_exchange', save_name);
 exportgraphics(gcf, filename, 'Resolution',300);
 
 

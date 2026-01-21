@@ -4,13 +4,12 @@ clear; close all;
 % Load model output
 load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-03_C01e+05.mat
 s_vhigh = s;
-load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+05.mat
+load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+05_tidal.mat
 s_high = s;
 
 colors_ameralik;
 folder_paths; % folder_fig
 
-% Define budget box and reference salinity
 z_bnd = [0, 110];
 Sref = 33.4;
 
@@ -67,7 +66,7 @@ if ~exist(saveFolder, 'dir')
     mkdir(saveFolder);
 end
 filename = fullfile(saveFolder, 'Freshwater_budget_vhigh_mixing.png');
-exportgraphics(gcf, filename, 'Resolution',300);
+% exportgraphics(gcf, filename, 'Resolution',300);
 
 
 
@@ -176,7 +175,7 @@ title('Cumulative Freshwater Transport 50-110 m');
 grid on;
 
 filename = fullfile(saveFolder, 'Cumulative_FW_budget_high_vhigh_mixing.png');
-exportgraphics(gcf, filename, 'Resolution',300);
+% exportgraphics(gcf, filename, 'Resolution',300);
 
 %% Monthly mean freshwater export
 tt = timetable(s.date.', b_0_110_vhigh.FW_river.', b_0_110_vhigh.FW_shelf.', 'VariableNames', {'FW_river','FW_shelf'});
@@ -217,7 +216,7 @@ legend('show');
 linkaxes(findall(figExport,'Type','axes'),'y');
 
 filename = fullfile(saveFolder, 'Cumulative_Shelf_export.png');
-exportgraphics(gcf, filename, 'Resolution',300);
+% exportgraphics(gcf, filename, 'Resolution',300);
 
 
 
@@ -259,11 +258,11 @@ ylabel('Depth (m)');
 ylim([-110 0]);
 grid on;
 legend('Location','best');
-title(['Freshwater Shelf Flux Profiles, ' num2str(z_bnd(1)) '-' num2str(z_bnd(2)) ' m']);
+title(['Freshwater Shelf Flux Profiles Very high, ' num2str(z_bnd(1)) '-' num2str(z_bnd(2)) ' m']);
 
 
-filename = fullfile(saveFolder, 'FW_export_profile_very_high.png');
-exportgraphics(gcf, filename, 'Resolution',300);
+% % filename = fullfile(saveFolder, 'FW_export_profile_very_high.png');
+% exportgraphics(gcf, filename, 'Resolution',300);
 
 
 % Plot
@@ -279,8 +278,8 @@ ylabel('Depth (m)');
 ylim([-110 0]);
 grid on;
 legend('Location','best');
-title(['Freshwater Shelf Flux Profiles, ' num2str(z_bnd(1)) '-' num2str(z_bnd(2)) ' m']);
+title(['Freshwater Shelf Flux Profiles High, ' num2str(z_bnd(1)) '-' num2str(z_bnd(2)) ' m']);
 
 
 filename = fullfile(saveFolder, 'FW_export_profile_high.png');
-exportgraphics(gcf, filename, 'Resolution',300);
+% exportgraphics(gcf, filename, 'Resolution',300);

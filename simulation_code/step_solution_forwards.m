@@ -9,6 +9,17 @@ function s = step_solution_forwards(i, p, s)
 s.T(:,i+1) = s.T(:,i)+s.dt(i)*p.sid*(sum(s.QTp(:,:,i),1)'+s.QTs(:,i)+s.QTk(:,i)+s.QTi(:,i)+s.QTv(:,i)+s.QTsurf(:,i))./s.V;
 s.S(:,i+1) = s.S(:,i)+s.dt(i)*p.sid*(sum(s.QSp(:,:,i),1)'+s.QSs(:,i)+s.QSk(:,i)+s.QSi(:,i)+s.QSv(:,i)+s.QSsurf(:,i))./s.V;
 
+% Create a copy of QSs that only keeps negative values (sink to shelf)
+QSs_neg = s.QSs(:,i);
+QSs_neg(QSs_neg >= 0) = 0;  % set all non-negative entries to 0
+
+% Update tracer proportional to salinity
+% with sink for shelf and source river
+s.Tracer(:,i+1) = s.Tracer(:,i) ...
+    + s.dt(i)*p.sid*(QSs_neg + s.QSk(:,i) + s.QSv(:,i)) .* s.Tracer(:,i) ./s.S(:,i) ./ s.V ...  
+    + s.dt(i)*p.sid*(s.QSsurf(:,i)) ./ s.V;
+
+
 % check for temperatures going below in-situ freezing point and reset to
 % in-situ freezing point. at the moment this is a quick fix - in reality 
 % this should result in sea ice formation but this is not yet implemented

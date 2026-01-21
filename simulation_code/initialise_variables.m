@@ -7,6 +7,7 @@ function s = initialise_variables(p, t, f, a)
 
 % set the timestep from the input time field
 s.dt = t(2:end)-t(1:end-1);
+s.t = t;
 
 %% initialise solution structure fields
 
@@ -70,6 +71,7 @@ s.z = 0.5*(ints(1:end-1)+ints(2:end));
 % get forcings on model layers and at model time steps
 [s.Ts, s.Ss, s.Qsg, s.Qr, s.Tr, s.Sr, s.Ta] = bin_forcings(f, s.H, t);
 
+
 % set any discharge values less than 1e-3 to 0, because the plume
 % model struggles to deal with small values
 s.Qsg(s.Qsg<1e-3) = 0;
@@ -90,5 +92,8 @@ centres_new = 0.5*(ints_new(1:end-1)+ints_new(2:end));
 s.T(:,1) = interp1(centres_old,a.T0,centres_new,'linear','extrap');
 s.S(:,1) = interp1(centres_old,a.S0,centres_new,'linear','extrap');
 s.I = interp1(centres_old,a.I0,centres_new,'linear','extrap');
+
+s.Tracer = zeros(size(s.S));
+
 
 end

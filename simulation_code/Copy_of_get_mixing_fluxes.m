@@ -26,19 +26,6 @@ end
 % richardson number
 du = u(2:end)-u(1:end-1);
 Ri = gp.*(H0(2:end)+H0(1:end-1))./(2*du.^2);
-
-
-
-omega = 2*pi/ (p.period_tide);                      
-u_tide = p.u_tide_max/2 + p.u_tide_max/2 .* sin(omega .* s.t(i) + p.phi);  % at timestep i
-du_tide = u_tide * double(abs(s.z) < p.dz_tide); % only above sill depth
-dudz_tide = du_tide/p.dz_tide;
-
-dh = H0(2:end)+H0(1:end-1);
-dudz2 = (2*du./dh).^2 + (dudz_tide(1:end-1)).^2;
-
-Ri = 2.*gp./dh./(dudz2);
-
 Ri(du==0) = p.Ri0;
 Ri(Ri>p.Ri0) = p.Ri0;
 Ri(Ri<0) = 0;
