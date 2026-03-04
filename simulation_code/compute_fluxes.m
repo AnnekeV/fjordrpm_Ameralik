@@ -16,7 +16,7 @@ function s = compute_fluxes(i, p, s)
 [s.QVs(:,i), s.QTs(:,i), s.QSs(:,i), s.phi(:,i)] = get_shelf_fluxes(i, p, s);
 
 % calculate tracer vertical mixing fluxes
-[s.QVk(:,i), s.QTk(:,i), s.QSk(:,i)] = get_mixing_fluxes(i, p, s);
+[s.QVk(:,i), s.QTk(:,i), s.QSk(:,i), s.Ri(:,i)] = get_mixing_fluxes(i, p, s);
 
 % calculate iceberg fluxes
 [s.QVi(:,i), s.QTi(:,i), s.QSi(:,i), s.QMi(:,i)] = get_iceberg_fluxes(i, p, s);

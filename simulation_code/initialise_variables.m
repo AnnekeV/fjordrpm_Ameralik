@@ -94,6 +94,7 @@ s.S(:,1) = interp1(centres_old,a.S0,centres_new,'linear','extrap');
 s.I = interp1(centres_old,a.I0,centres_new,'linear','extrap');
 
 s.Tracer = zeros(size(s.S));
+s.Ri = s.Tracer;
 
 
 end

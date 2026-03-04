@@ -19,13 +19,17 @@ addpath(genpath(path2sourcecode));
 p = default_parameters;
 p = parameters_ameralik;
 
-save_extension_string = "_tidal";
-% save_extension_string = "";
+% save_extension_string = "_tidal";
+save_extension_string = "";
+save_extension_string = "_test6";
 
-p.u_tide_max = 1 ; % ms-1
+p.A0 = 2 ; % tidal amplitude (m)
 p.period_tide = (12 + 25/60) / 24; % hours /24 hrs
-p.dz_tide = 110; % m
+p.period_tide = (12 + 25/60) * 60 *60; % seconds
+p.dz_tide = p.Hsill + (p.H-p.Hsill)/3; % m
+p.dz_distribution_scale = p.H;
 p.phi = 0;   % phase (set as needed)
+p.u_tide_max =  (2* pi * p.W* p.L * p.A0) /(p.Hsill*p.W*p.period_tide); % ms-1
 
 
 Kb_vals = [1e-4]; % vertical mixing
@@ -34,13 +38,12 @@ C0_vals = [1e5];  % shelf exchange
 
 % set up model layers
 % Layer thicknesses
-layers_1m   = ones(20,1);          % first 20 m, 1 m layers
-layers_2m   = 2*ones((50-20)/2,1); % 20–50 m, 2 m layers
+layers_2m   = 2*ones(50/2,1); % 20–50 m, 2 m layers
 layers_5m   = 5*ones((110-50)/5,1); % 50–110 m, 5 m layers
 layers_10m  = 10*ones((p.H-110)/10,1); % 110 m to bottom, 10 m layers
 % 
 % % Combine
-a.H0 = [layers_1m; layers_2m; layers_5m; layers_10m];
+a.H0 = [layers_2m; layers_5m; layers_10m];
 p.N = length(a.H0); % number of layers
 
 
@@ -225,31 +228,33 @@ savefoldervideo = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NI
 
 
 
+folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
+saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
 
 % PLOT AND SAVE FW CONTENT
 titleStr = sprintf('Kb=%0.0e C0=%0.0e', p.Kb, p.C0);
 depth_ranges = [0 50; 50  110];%; 200 500];
+
+% 
 % figFW = plotFWcontent(AM5, s, 33.3, depth_ranges, titleStr);
-folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
-saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
-base =  fullfile(saveFolder_ts, 'FW_content');
-fname = sprintf('%s_Kb_%0.0e_C0_%0.0e_layers.png', base, p.Kb, p.C0);   % e.g. "..._Kb_1e-05.png"
+% base =  fullfile(saveFolder_ts, 'FW_content');
+% fname = sprintf('%s_Kb_%0.0e_C0_%0.0e%s.png', base, p.Kb, p.C0,save_extension_string);   % e.g. "..._Kb_1e-05.png"
 % print(figFW, fname, '-dpng', '-r300');
 % saveFigure(figFW, fname, 11, 6, 300);
 
 
 % %%
 % PLOT TIMESERIES FOR T AND S AND COMPARE WITH OBS
-target_depths = [50 100 200 400];
+target_depths = [50 100 200 5 10];
 figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'T', titleStr); % temeperature
 base = fullfile(saveFolder_ts, 'Temperature');
-savenameT = sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);
-% saveFigure(figT, savenameT, 9,6);
+savenameT = sprintf('%s_Kb_%0.0e_C0_%0.0e%s.png', base, p.Kb, p.C0, save_extension_string);
+saveFigure(figT, savenameT, 9,6);
 
 figS = plotCompareObsModelTimeseries(AM5, s, target_depths, 'S', titleStr);  % salinity
 base =  fullfile(saveFolder_ts, 'Salinity');
-savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e.png', base, p.Kb, p.C0);   
-% saveFigure(figS, savenameS, 9,6);
+savenameS =  sprintf('%s_Kb_%0.0e_C0_%0.0e%s.png', base, p.Kb, p.C0, save_extension_string);   
+saveFigure(figS, savenameS, 9,6);
 % 
 
 figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'rho', titleStr); % temeperature

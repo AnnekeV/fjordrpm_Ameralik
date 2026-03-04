@@ -1,14 +1,14 @@
 
-folder_paths; % for saveFolderTS
+% folder_paths; % for saveFolderTS
 
 %% Load data
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
 load(fullfile(saveFolder,'Ameralik_AM5.mat'));
 % Load first model (already loaded)
-load(    'ameralik_combined_Kb1e-03_C01e+05.mat')  % strong mixing
+load(    'ameralik_combined_Kb1e-04_C01e+05_test6.mat')  % strong mixing
 s_very_high_mix = s;  % store as s1
 
-savename = '_incl_5m_very_high_mixing';
+savename = 'incl_5';
 
 
 

@@ -15,7 +15,7 @@
 
 %% Load data
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
-load('ameralik_combined_set_fjord_initial.mat'); 
+load(    'ameralik_combined_Kb1e-04_C01e+05.mat')  % tidal
 
 % Convert model times to datetime
 model_dates = datetime(s.t,'ConvertFrom','datenum');
@@ -112,9 +112,9 @@ for i = 1:length(obs_dates)
         mkdir(saveFolder);
     end
 
-    filename = fullfile(saveFolder, ['Comparison_' datestr(obs_dates(i), 'yyyymmdd') '_noSpinup.png']);
+    filename = fullfile(saveFolder, ['Comparison_' datestr(obs_dates(i), 'yyyymmdd') '.png']);
     % saveas(fig, filename); 
 
-    close(fig)
+    % close(fig)
 
 end
