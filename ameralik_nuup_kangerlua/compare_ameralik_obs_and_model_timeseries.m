@@ -1,22 +1,25 @@
 
-% folder_paths; % for saveFolderTS
+folder_paths; % for saveFolderTS
+saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
 
 %% Load data
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
 load(fullfile(saveFolder,'Ameralik_AM5.mat'));
 % Load first model (already loaded)
-load(    'ameralik_combined_Kb1e-04_C01e+05_test6.mat')  % strong mixing
-s_very_high_mix = s;  % store as s1
+load(    'ameralik_combined_Kb1e-03_C01e+05.mat')  % strong mixing
+s1 = s;  % store as s1
+s1.rhos = calculateDensity(s1.Ss, s1.Ts);
 
-savename = 'incl_5';
+
+savename = '';
 
 
 
 %%
 
 % Convert model times to datetime
-model_dates = datetime(s.t,'ConvertFrom','datenum');
-model_depths = s.z;
+model_dates = datetime(s1.t,'ConvertFrom','datenum');
+model_depths = s1.z;
 
 % Observation dates
 Ameralik_obs = AM5;
@@ -33,12 +36,13 @@ obs_rho =  Ameralik_obs.rho(:,validMask);
 
 %% Find closest model depth for target epth
 
-target_depths = [50, 100, 200, 400];
-
 target_depths = [50, 100, 200, 5];
+target_depths = [1, 5];
 
-Tlims = [-2,8];
-Slims = [28, 33.5];
+% target_depths = [50, 100, 200, 5, 2];
+
+Tlims = [-2,5];
+Slims = [31.5, 33.5];
 
 
 closest_idx_obs = zeros(length(target_depths),1);
@@ -53,57 +57,113 @@ for i = 1:length(target_depths)
 end
 
 
+
+%% Print min and max sal/T for 2018–2019
+
+% Create mask for obs dates in 2018 and 2019
+mask = obs_dates.Year >= 2018 & obs_dates.Year <= 2019;
+
+% Apply mask to obs arrays
+obs_dates_filtered = obs_dates(mask);
+obs_T_filtered     = obs_T(:, mask);
+obs_S_filtered     = obs_S(:, mask);
+
+for i = 1:length(target_depths)
+    % Observations (2018–2019 only)
+    Tmin = min(obs_T_filtered(closest_idx_obs(i), :), [], 'omitnan');
+    Tmax = max(obs_T_filtered(closest_idx_obs(i), :), [], 'omitnan');
+
+    Smin = min(obs_S_filtered(closest_idx_obs(i), :), [], 'omitnan');
+    Smax = max(obs_S_filtered(closest_idx_obs(i), :), [], 'omitnan');
+
+    fprintf('Obser: Depth %.1f m | T: %.1f–%.1f °C | S: %.2f–%.2f PSU\n', ...
+        target_depths(i), Tmin, Tmax, Smin, Smax);
+
+    % Model (exclude first 10 points for spin-up)
+    Tmin = min(s1.T(closest_idx_mod(i), 10:end), [], 'omitnan');
+    Tmax = max(s1.T(closest_idx_mod(i), 10:end), [], 'omitnan');
+
+    Smin = min(s1.S(closest_idx_mod(i), 10:end), [], 'omitnan');
+    Smax = max(s1.S(closest_idx_mod(i), 10:end), [], 'omitnan');
+
+    fprintf('Model: Depth %.1f m | T: %.1f–%.1f °C | S: %.2f–%.2f PSU\n', ...
+        target_depths(i), Tmin, Tmax, Smin, Smax);
+end
 %% ONE FIGURE WITH THREE TILES: TEMPERATURE, SALINITY, DENSITY
 fig = figure;
-tiledlayout(2,1, 'TileSpacing','compact'); % three tiles stacked vertically
+t = tiledlayout(3,1, 'TileSpacing','compact'); % three tiles stacked vertically
 colors = lines(length(target_depths));
-xlims = [datetime(2018,1,1) datetime(2019,12,31)];
+xlims = [datetime(2018,1,1) datetime(2020,01,02)];
 
 %% TEMPERATURE TILE
 ax1 = nexttile; hold on;
 
 for i = 1:length(target_depths)
-    plot(model_dates, s_very_high_mix.T(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
-    % plot(model_dates, s_high_mix.T(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+    plot(model_dates, s1.T(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
     plot(obs_dates, obs_T(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
-    ylim(ax1, Tlims)
+    plot(model_dates, s1.Ts(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+
+    % ylim(ax1, Tlims)
 end
 ylabel('Potential temperature (°C)');
+
+% Add panel label
+
+% Panel label
+text(ax1, 0.01, 0.95, '(a)', 'Units','normalized', ...
+    'FontWeight','bold','FontSize',12,'Color','black');
+
 grid off; box off;
 
 %% SALINITY TILE
 ax2 = nexttile; hold on;
 
 for i = 1:length(target_depths)
-    plot(model_dates, s_very_high_mix.S(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
-    % plot(model_dates, s_high_mix.S(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+    plot(model_dates, s1.S(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
     plot(obs_dates, obs_S(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
-    ylim(ax2, Slims)
+    plot(model_dates, s1.Ss(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+
+    % ylim(ax2, Slims)
 end
 ylabel('Salinity (PSU)');
 
+% Add panel label
+
+
+% Panel label
+text(ax2, 0.01, 0.95, '(b)', 'Units','normalized', ...
+    'FontWeight','bold','FontSize',12,'Color','black');
+
 %% DENSITY TILE
-% ax3 = nexttile; hold on;
-% 
-% for i = 1:length(target_depths)
-%     plot(model_dates, s.rho(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
-%     plot(obs_dates, obs_rho(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
-% end
-% ylabel('Density (kg/m^3)');
-% 
-% % %% LEGEND (bottom tile)
-% legendStrings = [];
-% for i = 1:length(target_depths)
-%     legendStrings{end+1} = sprintf('Model %d m', target_depths(i));
-%     legendStrings{end+1} = sprintf('Obs %d m', target_depths(i));
-% end
-% % legend(ax3, legendStrings, 'Location', 'best'); % put legend in bottom tile
+ax3 = nexttile; hold on;
+
+for i = 1:length(target_depths)
+    plot(model_dates, s1.rho(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
+    plot(model_dates, s1.rhos(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+
+    plot(obs_dates, obs_rho(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
+end
+ylabel('Density (kg m^{-3})');
+
+
+% Panel label
+text(ax1, 0.01, 0.95, '(c)', 'Units','normalized', ...
+    'FontWeight','bold','FontSize',12,'Color','black');
+
+
+%% LEGEND (bottom tile)
+legendStrings = [];
+for i = 1:length(target_depths)
+    legendStrings{end+1} = sprintf('Model %d m', target_depths(i));
+    legendStrings{end+1} = sprintf('Obs %d m', target_depths(i));
+end
+% legend(ax3, legendStrings, 'Location', 'best'); % put legend in bottom tile
 
 
 %% Formatting
 
 % Array of axes
-axAll = [ax1, ax2];
+axAll = [ax1, ax2, ax3];
 
 % Set x-limits and monthly ticks for all axes
 startDate = datetime(2018,1,1);
@@ -126,7 +186,8 @@ end
 %% Create dummy lines for general legend
 % General legend handles
 hModel1 = plot(nan, nan, '--k', 'LineWidth', 1.5);   % Model Kb=1e-3
-hModel2 = plot(nan, nan, ':k', 'LineWidth', 1.5);    % Model Kb=1e-4
+hShelf = plot(nan, nan, ':k', 'LineWidth', 1.5);    % Shelf Kb=1e-4
+
 hObs    = plot(nan, nan, '-k', 'LineWidth', 1.5);    % Observations
 
 % Depth colors
@@ -136,9 +197,20 @@ for i = 1:length(target_depths)
 end
 
 
-legendStrings = [      arrayfun(@(d) sprintf('%d m', d), target_depths, 'UniformOutput', false),  {'Observations', 'Model', }
+legendStrings = [      arrayfun(@(d) sprintf('%d m', d), target_depths, 'UniformOutput', false),  {'Observations', 'Model', ' Shelf' }
 ];
-legend(axAll(end), [hDepth', hObs, hModel1 ], legendStrings, 'Location', 'best', 'Box', false, 'NumColumns', 2);
+legend(axAll(end), [hDepth', hObs, hModel1 , hShelf], legendStrings, 'Location', 'best', 'Box', false, 'NumColumns', 2);
 
 %% SAVE FIGURE
 saveas(fig, fullfile(saveFolder_ts, ['Timeseries_comparison_T_S' savename '.png']));
+saveas(fig, fullfile(saveFolder_ts, ['Timeseries_comparison_T_S' savename '.pdf']));% Save PNG with controlled resolution
+exportgraphics(fig, fullfile(saveFolder_ts, ...
+    ['Timeseries_comparison_T_S' savename '.png']), ...
+    'Resolution',300);
+t.Padding = 'compact';
+t.TileSpacing = 'compact';
+% Save PDF tightly cropped to the figure area
+% exportgraphics(fig, fullfile(saveFolder_ts, ...
+%     ['Timeseries_comparison_T_S' savename '.pdf']), ...
+%     'ContentType','vector', ...
+%     'BackgroundColor','none');

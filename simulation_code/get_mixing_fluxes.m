@@ -28,22 +28,21 @@ du = u(2:end)-u(1:end-1);
 Ri = gp.*(H0(2:end)+H0(1:end-1))./(2*du.^2);  % no tidal mixing
 
 
-% add tidal mixing parameterization (Vries& Slater)
-% u_tide = p.u_tide_max/2 + p.u_tide_max/2 .* sin(omega .* s.t(i) + p.phi);  % at timestep i
-u_tide = p.u_tide_max;
-du_tide = u_tide * double(abs(s.z) < p.dz_distribution_scale); % only above sill depth
-du_tide = u_tide * ones(size(s.z));
-dudz_tide = du_tide./p.dz_tide;
+% % add tidal mixing parameterization (Vries& Slater)
+% % u_tide = p.u_tide_max/2 + p.u_tide_max/2 .* sin(omega .* s.t(i) + p.phi);  % at timestep i
+% u_tide = p.u_tide_max;
+% du_tide = u_tide * double(abs(s.z) < p.dz_distribution_scale); % only above sill depth or other relevant length scale
+% du_tide = u_tide * ones(size(s.z));
+% dudz_tide = du_tide./p.dz_tide;
+% 
 
-
-% richardson number (when including tide)
-dh = H0(2:end)+H0(1:end-1);
-dudz2 = (2*du./dh + dudz_tide(1:end-1)).^2;
-Ri = 2.*gp./dh./(dudz2);
+% % richardson number (when including tide)
+% dh = H0(2:end)+H0(1:end-1);
+% dudz2 = (2*du./dh + dudz_tide(1:end-1)).^2;
+% Ri = 2.*gp./dh./(dudz2);
 
 % KPP scheme
-% 
-% Ri(du==0) = p.Ri0;
+Ri(du==0) = p.Ri0;
 Ri(Ri>p.Ri0) = p.Ri0;
 Ri(Ri<0) = 0;
 

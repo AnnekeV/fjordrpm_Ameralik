@@ -101,7 +101,7 @@ for i = 1:nDates
     end
 
     if i == nDates
-        legend(axS,'Location', 'best'); 
+        legend(axS,'Location', 'South'); 
     end
 
 
@@ -148,21 +148,21 @@ load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 %% ----------------- Plot: Compare obs vs multiple model runs -----------------
 
 % Optional: define tile layout [nRows nCols]
-tileShape = [3 8]; % adjust based on number of observation dates
+tileShape = [3 6]; % adjust based on number of observation dates
 
-fig = plotCompareObsModelProfilesMultiple(AM5, sims, simNames, tileShape,[-1,5],[ 25 34], [datetime(2019,1,1), datetime(2020,1,1)]) ;
+fig = plotCompareObsModelProfilesMultiple(AM5, sims, simNames, tileShape,[0,6 ],[ 25 34], [datetime(2019,5,6), datetime(2019,11,1)]) ;
 
 
 % Save figure
 folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
 saveFolder_ts = fullfile(folder_fig,'comparison_obs_model_CTD_all');
 base = fullfile(saveFolder_ts,'ObsModelShelfProfiles_comparison19');
-savenameS = sprintf('%s_high_very_high_mixing_50m.png', base);
+savenameS = sprintf('%s_very_high_mixing_50m.png', base);
 
 
 % target size in inches and DPI
 width_in = 15;
-height_in = 12;
+height_in = 12; 
 dpi = 300;
 
 fig.Units = 'inches';

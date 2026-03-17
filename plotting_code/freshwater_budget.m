@@ -185,7 +185,7 @@ ylabel('salt closure');
 
 load ameralik_combined_Kb1e-03_C01e+05.mat
 
-compute_budget2(s, p, [50,110],34)
+compute_budget(s, p, [50,110],34)
 
 
 figure();

@@ -194,7 +194,7 @@ function fig = plotSalinityByDepth(Am, sims, simNames, target_depths, titleStr, 
     xlim([datetime(2018,1,1)  datetime(2020,1,1)] )
 
 end
-target_depths = [ 50 100 200];
+target_depths =   [10 50 100 200 ];
 
 
 
@@ -205,31 +205,24 @@ load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 
 
 sims = {
-    load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
-    load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
-    load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
     load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
-    load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
+    load('ameralik_combined_Kb1e-04_C01e+05_no_air_sea.mat', 's').s,
+    load('ameralik_combined_Kb1e-04_C01e+05_runoff.mat', 's').s,
     load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s,
-     % load('ameralik_combined_Kb1e-03_C01e+05_2019_only.mat', 's').s,
-     % load('ameralik_combined_Kb1e-03_C01e+05_2019_FW_for_2018_shelf').s,
-     % load('ameralik_combined_Kb1e-03_C01e+05_2018_shelf_for_2019').s,    
-     % load('ameralik_combined_Kb1e-03_C01e+05_double_runoff').s,  
-     % load('ameralik_combined_Kb1e-03_C01e+04_double_runoff').s,  
+    load('ameralik_combined_Kb1e-03_C01e+05_no_air_sea.mat', 's').s,
+     load('ameralik_combined_Kb1e-03_C01e+05_no_runoff.mat', 's').s,
+         load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
 
-    };
+   };
 simNames = {
-    'Low mix - Low shelfX',
-    'Low mix - High shelfX',
     'High mix - High shelfX',
-    'High mix - Low shelfX', 
-      'Very high mix - Low ShelfX',
+     'High mix - High ShelfX - No Air-Sea Heat Flux',
+      'High mix - High ShelfX - No Runoff',
     'Very high mix - High ShelfX',
-    % 'Very high mix - High ShelfX - 2019 only',
-    % '2019 FW 2018 Shelf and rest',
-    % '2018 Shelf for 2019',
-    % 'Double runoff - Very high mix - High ShelfX',
-    %  'Double runoff - Very high mix - Low shelfX',
+        'Very high mix - High ShelfX - No Air-Sea Heat Flux',
+      'Very high mix - High ShelfX - No Runoff',
+      'Very high mix - Low ShelfX',
+
 
     };
 
@@ -242,3 +235,26 @@ figS = plotSalinityByDepth(AM5, sims, simNames, target_depths, ...
 % saveas(figS, fullfile(saveFolder_ts,'Salinity_comparison_multiSim.png'));
 
 
+     % load('ameralik_combined_Kb1e-03_C01e+05_2019_only.mat', 's').s,
+     % load('ameralik_combined_Kb1e-03_C01e+05_2019_FW_for_2018_shelf').s,
+     % load('ameralik_combined_Kb1e-03_C01e+05_2018_shelf_for_2019').s,    
+     % load('ameralik_combined_Kb1e-03_C01e+05_double_runoff').s,  
+     % load('ameralik_combined_Kb1e-03_C01e+04_double_runoff').s,  
+    % load('ameralik_combined_Kb1e-05_C01e+05_tidal.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-04_C01e+05_tidal.mat', 's').s
+
+        % 'Very high mix - High ShelfX - 2019 only',
+    % '2019 FW 2018 Shelf and rest',
+    % '2018 Shelf for 2019',
+    % 'Double runoff - Very high mix - High ShelfX',
+    %  'Double runoff - Very high mix - Low shelfX',
+    % 'Low mix - High shelfX - tidal',
+    % 'High mix - High shelfX - tidal',
+
+        % load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
+
+
+        % 'Low mix - Low shelfX',
+    % 'Low mix - High shelfX',

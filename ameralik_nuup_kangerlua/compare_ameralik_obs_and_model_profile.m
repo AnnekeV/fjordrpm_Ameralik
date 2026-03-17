@@ -14,7 +14,7 @@
 
 
 %% Load data
-load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
+load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_AM5.mat'); 
 load(    'ameralik_combined_Kb1e-04_C01e+05.mat')  % tidal
 
 % Convert model times to datetime

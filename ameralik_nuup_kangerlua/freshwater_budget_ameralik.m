@@ -4,7 +4,7 @@ clear; close all;
 % Load model output
 load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-03_C01e+05.mat
 s_vhigh = s;
-load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+05_tidal.mat
+load ../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+05.mat
 s_high = s;
 
 colors_ameralik;
@@ -17,10 +17,17 @@ Sref = 33.4;
 b_0_50_high = compute_budget(s_high, p, [0, 50], Sref);
 b_50_110_high = compute_budget(s_high, p, [50, 110], Sref);
 b_0_110_high = compute_budget(s_high, p, [0, 110], Sref);
+b_110_200_high = compute_budget(s_high, p, [110, 200], Sref);
+b_50_200_high = compute_budget(s_high, p, [50, 200], Sref);
+
 
 b_0_50_vhigh = compute_budget(s_vhigh, p, [0, 50], Sref);
 b_50_110_vhigh = compute_budget(s_vhigh, p, [50, 110], Sref);
 b_0_110_vhigh = compute_budget(s_vhigh, p, [0, 110], Sref);
+b_110_200_vhigh = compute_budget(s_vhigh, p, [110, 200], Sref);
+b_50_200_vhigh = compute_budget(s_vhigh, p, [50, 200], Sref);
+
+
 
 
 
@@ -120,9 +127,9 @@ for iy = 1:length(uniqueYears)
         'MarkerEdgeColor', simColors('High mix - High shelfX'));
 
     plot(s.date(idx), cumsum(b_0_50_vhigh.FW_sum(idx))*dt_sec/1e9, ...
-        'k--','LineWidth',2, 'DisplayName','SUM');
-    plot(s.date(idx), cumsum(b_0_50_vhigh.FW_tendency(idx))*dt_sec/1e9, ...
-        'r:','LineWidth',2, 'DisplayName','Tendency');
+        'k--','LineWidth',2, 'DisplayName','Sum');
+    % plot(s.date(idx), cumsum(b_0_50_vhigh.FW_tendency(idx))*dt_sec/1e9, ...
+        % 'r:','LineWidth',2, 'DisplayName','Tendency');
 end
 
 ylabel('Freshwater transport (km^3)');
@@ -158,13 +165,13 @@ for iy = 1:length(uniqueYears)
 
     plot(s.date(idx), cumsum(b_50_110_vhigh.FW_sum(idx))*dt_sec/1e9, ...
         'k--','LineWidth',2, 'DisplayName','SUM');
-    plot(s.date(idx), cumsum(b_50_110_vhigh.FW_tendency(idx))*dt_sec/1e9, ...
-        'r:','LineWidth',2, 'DisplayName','Tendency');
+    % plot(s.date(idx), cumsum(b_50_110_vhigh.FW_tendency(idx))*dt_sec/1e9, ...
+    %     'r:','LineWidth',2, 'DisplayName','Tendency');
 end
 
 h = findall(gca, 'Type', 'Line');               % get all plotted lines
 [~, idxUnique] = unique({h.DisplayName}, 'stable'); % keep first occurrence
-legend(h(idxUnique), 'Location','northwest');
+legend(h(idxUnique), 'Location','best', 'Box', 'off');
 
 ylim([-2.5, 2.5])
 
@@ -175,7 +182,111 @@ title('Cumulative Freshwater Transport 50-110 m');
 grid on;
 
 filename = fullfile(saveFolder, 'Cumulative_FW_budget_high_vhigh_mixing.png');
-% exportgraphics(gcf, filename, 'Resolution',300);
+exportgraphics(gcf, filename, 'Resolution',300);
+
+
+%% Plot cumulative freshwater transport per year — journal-ready
+figCum = figure('Name','Cumulative Freshwater Transport','Units','centimeters','Position',[2 2 18 18]);
+
+dt_sec = mean(diff(s.t))*24*3600;  years = year(s.date);  uniqueYears = unique(years);
+
+% Style
+lw = 1.25;  mksz = 4;  mkevery = 20;  fsAx = 8;  fsPL = 9;  axCol = [0.15 0.15 0.15];
+
+% Axes layout [left bottom width height]
+mL=0.11; mR=0.02; mB=0.11; mT=0.03; gap=0.03;
+axW = 1-mL-mR;  axH = (1-mB-mT-gap)/2;
+ax1 = axes('Position',[mL, mB+1*(axH+gap), axW, axH]);  hold on;
+ax2 = axes('Position',[mL, mB+0*(axH+gap)  axW, axH]);  hold on;
+% ax3 = axes('Position',[mL, mB,          axW, axH]);  hold on;
+
+
+% ── Plot loop ─────────────────────────────────────────────────────────────
+for iy = 1:length(uniqueYears)
+    idx = years == uniqueYears(iy);
+    mi  = 1:mkevery:sum(idx);
+    d   = s.date(idx);
+    k   = dt_sec/1e9;
+
+    % helper: cumulative FW scaled to km³
+    cfw = @(x) cumsum(x(idx))*k;
+
+    % markers shorthand: circle=very-high, square=high
+    mVH = {'Marker','o','MarkerSize',mksz,'MarkerFaceColor','none'};
+    mHI = {'Marker','s','MarkerSize',mksz,'MarkerFaceColor','none'};
+
+    % --- Panel a: 0-50 m ---
+    axes(ax1);
+    plot(d, cfw(b_0_50_vhigh.FW_river),  'Color',fluxColors(1,:), 'LineWidth',lw, 'DisplayName','River');
+    plot(d, cfw(b_0_50_vhigh.FW_shelf),  'Color',fluxColors(2,:), 'LineWidth',lw, 'DisplayName','Shelf – very high mix', mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    plot(d, cfw(b_0_50_high.FW_shelf),   'Color',fluxColors(2,:), 'LineWidth',lw, 'DisplayName','Shelf – high mix',       mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+    plot(d, cfw(b_0_50_vhigh.FW_top),    'Color',fluxColors(3,:), 'LineWidth',lw, 'DisplayName','Top');
+    plot(d, cfw(b_0_50_vhigh.FW_base),   'Color',fluxColors(4,:), 'LineWidth',lw, 'DisplayName','Base – very high mix',  mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    plot(d, cfw(b_0_50_high.FW_base),    'Color',fluxColors(4,:), 'LineWidth',lw, 'DisplayName','Base – high mix',        mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+    plot(d, cfw(b_0_50_vhigh.FW_sum),    'k:',                   'LineWidth',lw, 'DisplayName','Net', mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    plot(d, cfw(b_0_50_high.FW_sum),    'k:',                   'LineWidth',lw, 'DisplayName','Net', mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+
+    % --- Panel b: 50-110 m ---
+    axes(ax2);
+    plot(d, cfw(b_50_200_vhigh.FW_river), 'Color',fluxColors(1,:), 'LineWidth',lw, 'DisplayName','River');
+    plot(d, cfw(b_50_200_vhigh.FW_shelf), 'Color',fluxColors(2,:), 'LineWidth',lw, 'DisplayName','Shelf – very high mix', mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    plot(d, cfw(b_50_200_high.FW_shelf),  'Color',fluxColors(2,:), 'LineWidth',lw, 'DisplayName','Shelf – high mix',       mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+    plot(d, cfw(b_50_200_high.FW_top),   'Color',fluxColors(3,:), 'LineWidth',lw, 'DisplayName','Top', mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+    plot(d, cfw(b_50_200_vhigh.FW_top),   'Color',fluxColors(3,:), 'LineWidth',lw, 'DisplayName','Top',  mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    plot(d, cfw(b_50_200_vhigh.FW_base),  'Color',fluxColors(4,:), 'LineWidth',lw, 'DisplayName','Base – very high mix',  mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    plot(d, cfw(b_50_200_high.FW_base),   'Color',fluxColors(4,:), 'LineWidth',lw, 'DisplayName','Base – high mix',        mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+    plot(d, cfw(b_50_200_vhigh.FW_sum),   'k:',                   'LineWidth',lw, 'DisplayName','Net',  mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    plot(d, cfw(b_50_200_high.FW_sum),    'k:',                   'LineWidth',lw, 'DisplayName','Net', mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+
+    % axes(ax1);
+    % plot(d, cfw(b_110_200_vhigh.FW_river),  'Color',fluxColors(1,:), 'LineWidth',lw, 'DisplayName','River');
+    % plot(d, cfw(b_110_200_vhigh.FW_shelf),  'Color',fluxColors(2,:), 'LineWidth',lw, 'DisplayName','Shelf – very high mix', mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    % plot(d, cfw(b_110_200_high.FW_shelf),   'Color',fluxColors(2,:), 'LineWidth',lw, 'DisplayName','Shelf – high mix',       mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+    % plot(d, cfw(b_110_200_vhigh.FW_top),    'Color',fluxColors(3,:), 'LineWidth',lw, 'DisplayName','Top', mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    % plot(d, cfw(b_110_200_high.FW_top),     'Color',fluxColors(3,:), 'LineWidth',lw, 'DisplayName','Top', mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+    % plot(d, cfw(b_110_200_vhigh.FW_base),   'Color',fluxColors(4,:), 'LineWidth',lw, 'DisplayName','Base – very high mix',  mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    % plot(d, cfw(b_110_200_high.FW_base),    'Color',fluxColors(4,:), 'LineWidth',lw, 'DisplayName','Base – high mix',        mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+    % plot(d, cfw(b_110_200_vhigh.FW_sum),    'k:',                   'LineWidth',lw, 'DisplayName','Net', mVH{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('Very high mix - High ShelfX'));
+    % plot(d, cfw(b_110_200_high.FW_sum),    'k:',                   'LineWidth',lw, 'DisplayName','Net', mHI{:}, 'MarkerIndices',mi, 'MarkerEdgeColor',simColors('High mix - High shelfX'));
+
+
+
+end
+% ── Dress axes ────────────────────────────────────────────────────────────
+axStyle = {'FontSize',fsAx,'TickDir','out','TickLength',[0.012 0.025],'Box','off','XColor',axCol,'YColor',axCol,'LineWidth',0.8};
+
+set(ax1, axStyle{:}, 'XTickLabel',[]);
+set(ax2, axStyle{:});  ylim(ax2,[-2 2]);
+
+for ax = [ax1 ax2];  grid(ax,'on');  ax.GridAlpha=0.18;  ax.GridLineStyle=':';  end
+
+ylabel(ax1,'FW transport (km^3)','FontSize',fsAx,'Color',axCol);  
+ylabel(ax2,'FW transport (km^3)','FontSize',fsAx,'Color',axCol); 
+
+text(ax1,0.01,0.97,'a) 0-50 m','Units','normalized','FontSize',fsPL,'FontWeight','bold','VerticalAlignment','top','Color',axCol);
+text(ax2,0.01,0.97,'b) 50-200 m ','Units','normalized','FontSize',fsPL,'FontWeight','bold','VerticalAlignment','top','Color',axCol);
+
+linkaxes([ax1 ax2],'x');
+
+% ── Manual legend (one entry per concept) ─────────────────────────────────
+hLeg = [
+    line(nan,nan, 'Color',fluxColors(1,:), 'LineWidth',lw);
+    line(nan,nan, 'Color',fluxColors(2,:), 'LineWidth',lw);
+    line(nan,nan, 'Color',fluxColors(3,:), 'LineWidth',lw);
+    line(nan,nan, 'Color',fluxColors(4,:), 'LineWidth',lw);
+    line(nan,nan, 'Color','k', 'LineStyle',':', 'LineWidth',lw);
+    line(nan,nan, 'Color',simColors('Very high mix - High ShelfX'), 'LineStyle','none', 'Marker','o', 'MarkerSize',mksz, 'MarkerFaceColor','none', 'LineWidth',1.5);
+    line(nan,nan, 'Color',simColors('High mix - High shelfX'), 'LineStyle','none', 'Marker','s', 'MarkerSize',mksz, 'MarkerFaceColor','none', 'LineWidth',1.5);
+];
+
+legLabels = {'River', 'Shelf', 'Top', 'Base', 'Net', 'Very high mixing', 'High mixing'};
+
+legend(ax2, hLeg, legLabels, 'Location','best','Box','off','FontSize',fsAx-1,'TextColor',axCol,'NumColumns',2);
+
+
+% ── Export ────────────────────────────────────────────────────────────────
+exportgraphics(figCum, fullfile(saveFolder,'Cumulative_FW_budget_high_vhigh_mixing.png'), 'Resolution',300);
+% exportgraphics(figCum, fullfile(saveFolder,'Cumulative_FW_budget.pdf'), 'ContentType','vector');
 
 %% Monthly mean freshwater export
 tt = timetable(s.date.', b_0_110_vhigh.FW_river.', b_0_110_vhigh.FW_shelf.', 'VariableNames', {'FW_river','FW_shelf'});
@@ -258,7 +369,7 @@ ylabel('Depth (m)');
 ylim([-110 0]);
 grid on;
 legend('Location','best');
-title(['Freshwater Shelf Flux Profiles Very high, ' num2str(z_bnd(1)) '-' num2str(z_bnd(2)) ' m']);
+title(['Freshwater Shelf Flux Profiles Not tidal, ' num2str(z_bnd(1)) '-' num2str(z_bnd(2)) ' m']);
 
 
 % % filename = fullfile(saveFolder, 'FW_export_profile_very_high.png');
@@ -278,7 +389,7 @@ ylabel('Depth (m)');
 ylim([-110 0]);
 grid on;
 legend('Location','best');
-title(['Freshwater Shelf Flux Profiles High, ' num2str(z_bnd(1)) '-' num2str(z_bnd(2)) ' m']);
+title(['Freshwater Shelf Flux Profiles Tidal, ' num2str(z_bnd(1)) '-' num2str(z_bnd(2)) ' m']);
 
 
 filename = fullfile(saveFolder, 'FW_export_profile_high.png');

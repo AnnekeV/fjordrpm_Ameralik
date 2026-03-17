@@ -21,9 +21,9 @@ p = parameters_ameralik;
 
 % save_extension_string = "_tidal";
 save_extension_string = "";
-save_extension_string = "_test6";
+% save_extension_string = "_no_runoff";
 
-p.A0 = 2 ; % tidal amplitude (m)
+p.A0 = 1e-12  % tidal amplitude (m)
 p.period_tide = (12 + 25/60) / 24; % hours /24 hrs
 p.period_tide = (12 + 25/60) * 60 *60; % seconds
 p.dz_tide = p.Hsill + (p.H-p.Hsill)/3; % m
@@ -32,13 +32,13 @@ p.phi = 0;   % phase (set as needed)
 p.u_tide_max =  (2* pi * p.W* p.L * p.A0) /(p.Hsill*p.W*p.period_tide); % ms-1
 
 
-Kb_vals = [1e-4]; % vertical mixing
-C0_vals = [1e5];  % shelf exchange
+Kb_vals = [1e-3] % vertical mixing
+C0_vals = [1e4] % shelf exchange
 
 
 % set up model layers
 % Layer thicknesses
-layers_2m   = 2*ones(50/2,1); % 20–50 m, 2 m layers
+layers_2m   = 2*ones(50/2,1); % 1–50 m, 2 m layers
 layers_5m   = 5*ones((110-50)/5,1); % 50–110 m, 5 m layers
 layers_10m  = 10*ones((p.H-110)/10,1); % 110 m to bottom, 10 m layers
 % 
@@ -62,10 +62,11 @@ saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/Ph
 load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 load(fullfile(saveFolder,'Ameralik_AM5.mat'));
 
+% Define mask for 2018–2019 (anonymous function with datetime input)
+mask1819 = @(time) (year(time)==2018 | year(time)==2019);
 
-
-% read meteo data and select 2018 - 2019 
-% DMI
+% % read meteo data and select 2018 - 2019 
+% % DMI
 T_temp = readtable("/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/Data/Weather data/DMI/425000.csv", ...
     'Delimiter', ';', 'ReadVariableNames', true, 'VariableNamingRule', 'preserve');
 T_temp.Properties.VariableNames{'Hour(utc)'} = 'Hour_utc';
@@ -77,12 +78,11 @@ t_forc_date = datetime( T_temp.Year, ...
                         T_temp.Hour_utc, ...
                         0, 0 );
 T_temp.time = t_forc_date  ;
-% Define mask for 2018–2019 (anonymous function with datetime input)
-mask1819 = @(time) (year(time)==2018 | year(time)==2019);
 T_temp = T_temp(mask1819(T_temp.time), :);
+f.tsurf = datenum(T_temp.time).'; % time vector for surface forcing
+
 Ta = T_temp.temperature;
 f.Ta = Ta.'; % air temperature
-f.tsurf = datenum(T_temp.time).'; % time vector for surface forcing
 
 
 % Read CSV into table
@@ -101,11 +101,7 @@ runoff =  (T_GIC.runoff_m3_s + T_GrIS.runoff_m3_s + T_Tundra.runoff_m3_s);
 % extend freshwater time series so can be run for a year
 t_runoff = datenum(T_GIC.time(:)).'; % 1xN or Nx1 -> row later
 
-% % convert to datetime, subtract one calendar year, convert back to datenum (row)
-% dt = datetime(t_runoff, 'ConvertFrom', 'datenum');  % datetime array
-% dt_minus1y = dt - calyears(1);                      % subtract 1 calendar year
-% t_runoff_minus1y = datenum(dt_minus1y).';           % back to datenum, row 1xN
-% t_runoff = t_runoff_minus1y;
+
 
 runoff = runoff(:).';             % 1xN
 
@@ -194,6 +190,9 @@ total_input = mean(f.Qsg)*60*60*24*365/1e9
 % % set up to be same as  average of winter profiles in Ameralik
 % (nov-march)
 % and extrapolate lowest value
+% AM5.T_init = ones(size(AM5.T_init))*mean(AM5.T_init);  % if you want to a
+% test w/ another profiel
+% AM5.S_init = ones(size(AM5.S_init))*max(AM5.S_init);
 [a.T0, a.S0] = bin_shelf_profiles(AM5.T_init, AM5.S_init, ...
     AM5.depths*-1, a.H0, 'nearest');
 
@@ -213,6 +212,7 @@ for i = 1:numel(C0_vals)
         p.Kb = Kb_vals(j);
         s = run_model(p, t, f, a);  
         s.rho = calculateDensity(s.S, s.T);
+        s.rhos = calculateDensity(s.Ss, s.Ts);
         
         % save the output
         savename = sprintf('ameralik_combined_Kb%0.0e_C0%0.0e%s.mat', p.Kb, p.C0, save_extension_string);
@@ -258,9 +258,9 @@ saveFigure(figS, savenameS, 9,6);
 % 
 
 figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'rho', titleStr); % temeperature
-figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7]);
-base =  fullfile(saveFolder_ts, 'Surfer_dens');
-saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e%s.png', base, p.Kb, p.C0, save_extension_string), 9,6);
+figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7], 700);
+% base =  fullfile(saveFolder_ts, 'Surfer_dens');
+% saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e%s.png', base, p.Kb, p.C0, save_extension_string), 9,6);
 
 %%
 % % make basic plots of the output

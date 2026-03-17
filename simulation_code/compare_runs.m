@@ -1,7 +1,7 @@
 % Load model output
-load ameralik_combined_Kb1e-05_C01e+05_test2.mat
+load ameralik_combined_Kb1e-05_C01e+05.mat
 s2 = s;
-load ameralik_combined_Kb1e-04_C01e+05_test3_full_depth.mat
+load ameralik_combined_Kb1e-04_C01e+05_export_Kz.mat
 s3 = s;
 
 
@@ -90,6 +90,108 @@ contourf(idx,  s3.z, Rsub, 30, 'LineColor','none')
 axis tight
 clear title    % remove variable if present
 ax = gca;
-title(ax, 'Richardson number', 'FontWeight','bold','FontSize',12);
+title(ax, 'Richardson number tidal', 'FontWeight','bold','FontSize',12);
+colormap(parula)
+colorbar
+
+sz = size(s.Ri);
+ncols = sz(2);
+% Plot
+figure('Color','w');
+idx = 1:100:ncols;
+Rsub = s2.Ri(:, idx);
+contourf(idx,  s3.z, Rsub, 30, 'LineColor','none')
+axis tight
+clear title    % remove variable if present
+ax = gca;
+title(ax, 'Richardson number not tidal', 'FontWeight','bold','FontSize',12);
+colormap(parula)
+colorbar
+
+
+%==== N2
+
+figure()
+
+gp = p.g.*(p.betaS.*(s3.S(2:end, :)-s3.S(1:end-1, :))-p.betaT.*(s3.T(2:end, :)-s3.T(1:end-1, :)));
+dh = s3.H(2:end)+s3.H(1:end-1);
+N2 = 2.*gp./dh;
+
+
+below_z = abs(s3.z) >100
+below_z_min1 = below_z(1:end-1)
+
+figure()
+contourf(s3.t, s3.z(below_z_min1), gp(below_z_min1, :))
+axis tight
+clear title    % remove variable if present
+ax = gca;
+title(ax, 'gp', 'FontWeight','bold','FontSize',12);
+colormap(parula)
+colorbar
+
+
+figure()
+contourf(s3.t, s3.z(1:end-1), N2, linspace(-1e-6, 2e-6, 31))
+axis tight
+clear title    % remove variable if present
+ax = gca;
+title(ax, 'N2', 'FontWeight','bold','FontSize',12);
+colormap(parula)
+colorbar
+
+
+%N2/dudz
+dudz = p.u_tide_max/p.dz_distribution_scale ;
+
+
+
+
+
+
+Ri = N2./dudz^2;
+
+
+%==== Ri
+levels = linspace(-1, 2, 31);   % 30 intervals
+contourf(s3.t, s3.z(1:end-1), Ri, levels, 'LineColor','none')
+colormap(parula(30))
+caxis([-1 5])
+title(ax, 'Ri before', 'FontWeight','bold','FontSize',12);
+colorbar
+
+Ri(Ri>p.Ri0) = p.Ri0;
+
+figure()
+contourf(s3.t, s3.z(1:end-1), Ri)
+axis tight
+clear title    % remove variable if present
+ax = gca;
+title(ax, 'Ri middle', 'FontWeight','bold','FontSize',12);
+colormap(parula)
+colorbar
+
+
+Ri(Ri<0) = 0;
+
+figure()
+contourf(s3.t, s3.z(1:end-1), Ri)
+axis tight
+clear title    % remove variable if present
+ax = gca;
+title(ax, 'Ri after', 'FontWeight','bold','FontSize',12);
+colormap(parula)
+colorbar
+
+Kz = p.Kb + (Ri<p.Ri0 & Ri>=0)*p.K0.*(1-(Ri/p.Ri0).^2).^3;
+
+
+
+figure()
+contourf(s3.t, s3.z(1:end-1), Kz)
+axis tight
+clear title    % remove variable if present
+ax = gca;
+title(ax, 'Kz', 'FontWeight','bold','FontSize',12);
 colormap(parula)
 colorbar

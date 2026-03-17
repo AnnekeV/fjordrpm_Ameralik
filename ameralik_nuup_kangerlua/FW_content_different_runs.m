@@ -9,6 +9,8 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
 % - Fjord simulations dashed color lines
 % - Observations solid black
 
+    simColors = colors_ameralik();  % returns the combined map
+
     if nargin < 6 || isempty(simNames)
         simNames = arrayfun(@(k) sprintf('Sim%d', k), 1:numel(sims), 'UniformOutput', false);
     end
@@ -27,12 +29,12 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
 
     nSims = numel(sims);
 
-    % Use colorblind-friendly palette or default lines
-    if exist('brewermap','file')
-        colors = brewermap(nSims,'Set1');
-    else
-        colors = lines(nSims);
-    end
+    % % Use colorblind-friendly palette or default lines
+    % if exist('brewermap','file')
+    %     colors = brewermap(nSims,'Set1');
+    % else
+    %     colors = lines(nSims);
+    % end
 
     fig = figure('Name', titleStr, 'Units','normalized','Position',[0.1 0.1 0.75 0.8]);
     tlo = tiledlayout(tileShape(1), tileShape(2), 'TileSpacing','compact','Padding','compact');
@@ -52,7 +54,8 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
     end
 
     for k = 1:nDepths
-        nexttile; hold on;
+        ax = nexttile; 
+        hold on;
         % Create depth range label
         drLabel = sprintf('%d–%d m', depth_ranges(k,1), depth_ranges(k,2));
         
@@ -62,30 +65,32 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
         % Plot fjord content from each simulation
         for sIdx = 1:nSims
             % Choose line style: even -> '--', odd -> '-'
-            if sIdx ==3
-                lineStyle = '--';
-            else
-                lineStyle = '-';
-            end
+             lineStyle = '--';
+
             s = sims{sIdx};
             s.date = datetime(s.t,'ConvertFrom','datenum');
             FW_fjord = fw_content(s.S, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
-            plot(s.date, FW_fjord, lineStyle, 'Color', colors(sIdx,:), 'LineWidth',1.5, 'DisplayName', simNames{sIdx});
+            plot(s.date, FW_fjord, lineStyle,  'LineWidth',1.5, 'DisplayName', simNames{sIdx}, 'Color', simColors(simNames{sIdx}));  %'Color', colors(sIdx,:),
         end
 
         % Observations
         if ~isempty(Am)
             FW_obs = fw_content(Am.S, -Am.depths, Am.dz, Sref, depth_ranges(k,1), depth_ranges(k,2));
-            plot(Am.dates, FW_obs, '-k', 'LineWidth',1.3, 'DisplayName','Obs');
+            plot(Am.dates, FW_obs, '-k', 'LineWidth',1.3, 'DisplayName','Observations');
         end
             % FW_shelf = fw_content(s.Ss, s.z, s.H, Sref, depth_ranges(k,1), depth_ranges(k,2));
             % plot(s.date, FW_shelf, ':k', 'LineWidth',1.5, ...
             %      'DisplayName','Shelf');
 
-        xlim([datetime(2018,1,1), datetime(2020,1,1)]); ylim([ 0 6]);
-        ylabel('FW depthn (m)');
-        title(sprintf('%s', drLabel));
+        xlim([datetime(2018,1,1), datetime(2020,1,1)]); ylim([ 0 4]);
+        % title(sprintf('%s', drLabel));
+        text(ax, 0.01, 0.99, drLabel, 'Units','normalized', ...
+     'HorizontalAlignment','left', 'VerticalAlignment','top', ...
+     'FontWeight','bold');
         grid off; box off;
+        % if k == 1
+        ylabel(ax, 'FW content (m)');
+        % end
     end
 
     % After plotting, collect axes (in correct order)
@@ -99,26 +104,25 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
     bottomAxes = ax(nAx-nCols+1 : nAx);
     for jj = 1:nAx
         if ismember(ax(jj), bottomAxes)
-            xlabel(ax(jj), 'Time');
+            xlabel(ax(jj), '');
         else
             ax(jj).XTickLabel = [];
         end
     end
     
-    % Put legend in the last axis (not on layout object)
-    legend(ax(1), 'Location', 'best', 'box', 'off')                        % <= Change This Line
+    legend(ax(end), 'Location', 'NorthEast', 'box', 'off')  
+    % legend(ax(end), 'Box','off','Position',[0.75 0.7 0.15 0.15]);  % x, y, width, height
 end
-
 
 
 
 sims = {
     % load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
-    load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
     % load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
     load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
     % load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
-         load('ameralik_combined_Kb1e-04_C01e+05_tidal.mat', 's').s, 
+         % load('ameralik_combined_Kb1e-04_C01e+05_tidal.mat', 's').s, 
 
     load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s,
      % load('ameralik_combined_Kb1e-03_C01e+05_2019_only.mat', 's').s,
@@ -133,11 +137,11 @@ sims = {
     };
 simNames = {
     % 'Low mix - Low shelfX',
-    'Low mix - High shelfX',
+    % 'Low mix - High shelfX',
     % 'High mix - Low shelfX', 
     'High mix - High shelfX',
       % 'Very high mix - Low ShelfX',
-           'High mix tidal - High shelf' 
+           % 'High mix tidal - High shelf' 
 
     'Very high mix - High ShelfX',
     % 'Very high mix - High ShelfX - 2019 only',
@@ -160,9 +164,9 @@ load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 depth_ranges = [
     % 0 5;
                 0 50;
-                % 50 110;
-                50 200;
-                % 110 200;
+                50 110;
+                % 50 200;
+                110 200;
                 200 500;
                 ];
 
@@ -174,7 +178,7 @@ folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/Ph
 saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
 fig = plotFWcontentByDepthRange( ...
     AM5, sims, Sref, depth_ranges, ...
-    'FW Content Comparison', simNames, [3 1]);
+    'FW Content Comparison', simNames, [4 1]);
 base =  fullfile(saveFolder_ts, 'FW_Content_simulations_parameters');
-savenameS =  sprintf('%s_AM5_3_panels_tidal.png', base);   
-saveFigure(fig, savenameS, 10,7);
+savenameS =  sprintf('%s_AM5_4_panels_below.png', base);   
+saveFigure(fig, savenameS, 5,5);
