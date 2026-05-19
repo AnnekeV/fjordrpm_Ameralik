@@ -1,4 +1,4 @@
-load ('ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+05_tidal.mat')
+load ('ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+05.mat')
 save_name = 'FW_export_surfer_high_wtidal.png';
 
 load('ameralik_combined_Kb1e-03_C01e+05.mat'), 
@@ -78,7 +78,7 @@ ylabel('Depth');
 title('Shelf Exchange Over Time');
 
 filename = fullfile(folder_fig, 'Shelf_exchange', save_name);
-exportgraphics(gcf, filename, 'Resolution',300);
+% exportgraphics(gcf, filename, 'Resolution',300);
 
 
 

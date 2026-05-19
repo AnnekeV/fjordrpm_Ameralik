@@ -19,11 +19,9 @@ addpath(genpath(path2sourcecode));
 p = default_parameters;
 p = parameters_ameralik;
 
-% save_extension_string = "_tidal";
-save_extension_string = "";
-% save_extension_string = "_no_runoff";
+save_extension_string = ""; %_tidal %nor_runoff
 
-p.A0 = 1e-12  % tidal amplitude (m)
+p.A0 = 1e-12  % tidal amplitude (m) % basically 0
 p.period_tide = (12 + 25/60) / 24; % hours /24 hrs
 p.period_tide = (12 + 25/60) * 60 *60; % seconds
 p.dz_tide = p.Hsill + (p.H-p.Hsill)/3; % m
@@ -33,7 +31,7 @@ p.u_tide_max =  (2* pi * p.W* p.L * p.A0) /(p.Hsill*p.W*p.period_tide); % ms-1
 
 
 Kb_vals = [1e-4] % vertical mixing
-C0_vals = [1e5] % shelf exchange
+C0_vals = [1e4] % shelf exchange
 
 
 % set up model layers

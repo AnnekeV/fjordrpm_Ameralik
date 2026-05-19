@@ -2,8 +2,8 @@
 
 %% Load data
 load('/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim/Ameralik_mean_daily.mat'); 
-load('ameralik_combined_with_spinup_strong_mixing.mat'); 
-savename = 'withSpinupStrongMixing';
+% load('ameralik_combined_with_spinup_strong_mixing.mat'); 
+% savename = 'withSpinupStrongMixing';
 
 %%
 

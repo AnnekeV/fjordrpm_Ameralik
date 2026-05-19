@@ -1,3 +1,6 @@
+% This script makes a surfer plot of density comparin observation adn
+% modelling 
+% Figure 5 and Figure 6 in the manuscript
 
 close all;
 %% Load data
@@ -18,21 +21,21 @@ densities_deep = [26, 26.3, 26.5, 26.6, 26.7];
 load('ameralik_combined_Kb1e-04_C01e+05.mat')  
 
 fig = plotCompareObsModelSurfer(AM5, s, 'rho', densities_deep, 700, [1024.5, 1027])
-exportgraphics(fig, fullfile(folderfig,'rho_deep_Kb1e-04.png'),'Resolution',300)
-exportgraphics(fig, fullfile(folderfig,'rho_deep_Kb1e-04.pdf'),'Resolution',300)
+% exportgraphics(fig, fullfile(folderfig,'rho_deep_Kb1e-04.png'),'Resolution',300)
+% exportgraphics(fig, fullfile(folderfig,'rho_deep_Kb1e-04.pdf'),'Resolution',300)
 
 fig = plotCompareObsModelSurfer(AM5, s, 'rho', densities_shallow, 50);
-exportgraphics(fig, fullfile(folderfig,'rho_shallow_Kb1e-04.png'),'Resolution',300)
-exportgraphics(fig, fullfile(folderfig,'rho_shallow_Kb1e-04.pdf'),'Resolution',300)
+% exportgraphics(fig, fullfile(folderfig,'rho_shallow_Kb1e-04.png'),'Resolution',300)
+% exportgraphics(fig, fullfile(folderfig,'rho_shallow_Kb1e-04.pdf'),'Resolution',300)
 
 
 %% --- Load second model ---
 load('ameralik_combined_Kb1e-03_C01e+05.mat')  
 
 fig = plotCompareObsModelSurfer(AM5, s, 'rho', densities_deep, 700);
-exportgraphics(fig, fullfile(folderfig,'rho_deep_Kb1e-03.png'),'Resolution',300)
-exportgraphics(fig, fullfile(folderfig,'rho_deep_Kb1e-03.pdf'),'Resolution',300)
+% exportgraphics(fig, fullfile(folderfig,'rho_deep_Kb1e-03.png'),'Resolution',300)
+% exportgraphics(fig, fullfile(folderfig,'rho_deep_Kb1e-03.pdf'),'Resolution',300)
 
 fig = plotCompareObsModelSurfer(AM5, s, 'rho', densities_shallow, 50);
-exportgraphics(fig, fullfile(folderfig,'rho_shallow_Kb1e-03.png'),'Resolution',300)
-exportgraphics(fig, fullfile(folderfig,'rho_shallow_Kb1e-03.pdf'),'Resolution',300)
+% exportgraphics(fig, fullfile(folderfig,'rho_shallow_Kb1e-03.png'),'Resolution',300)
+% exportgraphics(fig, fullfile(folderfig,'rho_shallow_Kb1e-03.pdf'),'Resolution',300)

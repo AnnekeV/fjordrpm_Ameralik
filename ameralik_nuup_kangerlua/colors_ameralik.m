@@ -1,3 +1,6 @@
+% This script sets the basic colors for all other plots so they are
+% consistent.
+
 function colors = colors_ameralik()
 %% colors_ameralik.m
 % Returns a struct with all color definitions for Ameralik plots.
@@ -8,6 +11,7 @@ fluxColors = parula(nFluxes);
 colors.fluxColors = fluxColors;
 
 
+% Line styles
 colors.ls.VHIGH = ':';  
 colors.ls.HIGH = '--';  
 colors.ls.LOW = ".-";

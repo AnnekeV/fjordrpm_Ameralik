@@ -1,3 +1,4 @@
+%% This script computes the freshwater budget and makes figures
 %% Freshwater Budget Script Using compute_budget
 clear; close all;
 

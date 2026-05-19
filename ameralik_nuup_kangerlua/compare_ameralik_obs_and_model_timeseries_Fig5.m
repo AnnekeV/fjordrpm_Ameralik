@@ -1,3 +1,6 @@
+% This is the script for Figure 5 in the manuscript ocmparing temprarture
+% and salinity between obs and model timeseries.
+
 close all;
 clear all;
 folder_paths; % for saveFolderTS
