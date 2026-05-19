@@ -45,6 +45,7 @@ saveFolder_skill_metric = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibr
 
 % --- Step 1: compute all FW timeseries -----------------------------------
 fw = computeFWtimeseries(AM5, sims, simNames, Sref, depth_ranges);
+metrics = computeFWmetrics(fw);
 
 % --- Step 2: plot timeseries as bar plots --------------------------------
 close all;
@@ -52,14 +53,12 @@ close all;
 fig = plotFWtimeseries(fw, metrics, depth_ranges);
 
 % --- Step 3: metrics figures (tiled, grouped bars) -----------------------
-metrics = computeFWmetrics(fw);
 figM    = plotFWmetricsTiled(metrics);
  % Save figure as PDF
 savePath = fullfile(saveFolder_skill_metric, 'FW_skill_metrics.pdf');
 % exportgraphics(figM, savePath, 'ContentType', 'vector');
 % print(figM, savePath, '-dpdf', '-vector', '-r0');
 % fprintf('Figure saved to: %s\n', savePath);
-
 % exportgraphics(figM, savePath, 'ContentType', 'image');
 % fprintf('Figure saved to: %s\n', savePath);
 
