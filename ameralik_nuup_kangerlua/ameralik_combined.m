@@ -32,8 +32,8 @@ p.phi = 0;   % phase (set as needed)
 p.u_tide_max =  (2* pi * p.W* p.L * p.A0) /(p.Hsill*p.W*p.period_tide); % ms-1
 
 
-Kb_vals = [1e-3] % vertical mixing
-C0_vals = [1e4] % shelf exchange
+Kb_vals = [1e-4] % vertical mixing
+C0_vals = [1e5] % shelf exchange
 
 
 % set up model layers
@@ -258,9 +258,9 @@ saveFigure(figS, savenameS, 9,6);
 % 
 
 figT = plotCompareObsModelTimeseries(AM5, s, target_depths, 'rho', titleStr); % temeperature
-figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7], 700);
-% base =  fullfile(saveFolder_ts, 'Surfer_dens');
-% saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e%s.png', base, p.Kb, p.C0, save_extension_string), 9,6);
+figRhosurfer = plotCompareObsModelSurfer(AM5,  s, 'rho', [26, 26.3, 26.5, 26.6, 26.7], 50);
+base =  fullfile(saveFolder_ts, 'Surfer_dens');
+saveFigure(figRhosurfer, sprintf('%s_Kb_%0.0e_C0_%0.0e%s_50m.png', base, p.Kb, p.C0, save_extension_string), 9,6);
 
 %%
 % % make basic plots of the output

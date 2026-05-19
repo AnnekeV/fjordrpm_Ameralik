@@ -44,7 +44,7 @@ cmax = 0.20;                   % maximum for colorbar
 cmin = -cmax;                   % symmetric min
 
 % Apply diverging colormap
-colormap(divergingCMap(c_shelf_in, c_shelf_out, nlevels*2));
+colormap(divergingCMap(colors.c_shelf_in, colors.c_shelf_out, nlevels*2));
 caxis([cmin cmax]);
 
 % Colorbar

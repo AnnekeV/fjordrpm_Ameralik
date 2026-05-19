@@ -156,3 +156,12 @@ dmypy.json
 /examples/untitled.m
 
 /old_environment.yml
+
+
+# pictures
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.txt
+

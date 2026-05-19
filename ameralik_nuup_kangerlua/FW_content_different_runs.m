@@ -9,7 +9,11 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
 % - Fjord simulations dashed color lines
 % - Observations solid black
 
-    simColors = colors_ameralik();  % returns the combined map
+    colors = colors_ameralik();  % returns the combined map
+    simColors = colors.simColors;
+    lsHIGH = colors.ls.HIGH; 
+    lsVHIGH = colors.ls.VHIGH;
+    lsOBS = colors.ls.OBS;
 
     if nargin < 6 || isempty(simNames)
         simNames = arrayfun(@(k) sprintf('Sim%d', k), 1:numel(sims), 'UniformOutput', false);
@@ -64,8 +68,14 @@ function fig = plotFWcontentByDepthRange(Am, sims, Sref, depth_ranges, titleStr,
         drLabel = sprintf('%s) %s', letter, drLabel);
         % Plot fjord content from each simulation
         for sIdx = 1:nSims
-            % Choose line style: even -> '--', odd -> '-'
-             lineStyle = '--';
+
+            if contains(simNames{sIdx}, "Very high")
+                lineStyle = lsVHIGH;   % Set line style for "Very high" simulations
+            elseif contains(simNames{sIdx}, "High")
+                lineStyle = lsHIGH;
+            else
+                lineStyle = '-.';      % dash-dot line
+            end
 
             s = sims{sIdx};
             s.date = datetime(s.t,'ConvertFrom','datenum');
@@ -163,10 +173,10 @@ load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 
 depth_ranges = [
     % 0 5;
+                % 0 5;
                 0 50;
-                50 110;
                 % 50 200;
-                110 200;
+                50 200;
                 200 500;
                 ];
 
@@ -178,7 +188,7 @@ folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/Ph
 saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
 fig = plotFWcontentByDepthRange( ...
     AM5, sims, Sref, depth_ranges, ...
-    'FW Content Comparison', simNames, [4 1]);
+    'FW Content Comparison', simNames, [3 1]);
 base =  fullfile(saveFolder_ts, 'FW_Content_simulations_parameters');
-savenameS =  sprintf('%s_AM5_4_panels_below.png', base);   
+savenameS =  sprintf('%s_AM5_3_panels.pdf', base);   
 saveFigure(fig, savenameS, 5,5);

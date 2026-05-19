@@ -1,4 +1,5 @@
-
+close all;
+clear all;
 folder_paths; % for saveFolderTS
 saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
 
@@ -10,7 +11,8 @@ load(    'ameralik_combined_Kb1e-03_C01e+05.mat')  % strong mixing
 s1 = s;  % store as s1
 s1.rhos = calculateDensity(s1.Ss, s1.Ts);
 
-
+colors_general = colors_ameralik;
+ls_model = colors_general.ls.VHIGH ;
 savename = '';
 
 
@@ -36,9 +38,9 @@ obs_rho =  Ameralik_obs.rho(:,validMask);
 
 %% Find closest model depth for target epth
 
-target_depths = [50, 100, 200, 5];
-target_depths = [1, 5];
-
+target_depths = [50, 100, 200];
+% target_depths = [1, 5];
+% 
 % target_depths = [50, 100, 200, 5, 2];
 
 Tlims = [-2,5];
@@ -90,18 +92,36 @@ for i = 1:length(target_depths)
         target_depths(i), Tmin, Tmax, Smin, Smax);
 end
 %% ONE FIGURE WITH THREE TILES: TEMPERATURE, SALINITY, DENSITY
-fig = figure;
-t = tiledlayout(3,1, 'TileSpacing','compact'); % three tiles stacked vertically
+fig = figure('Position',[100 100 900 400]);
+t = tiledlayout(2,1, 'TileSpacing','compact'); % three tiles stacked vertically
 colors = lines(length(target_depths));
+
+n = length(target_depths);
+cmap = cmocean('dense', n+1);  % one extra color
+colors = cmap(2:end, :);       % skip lightest color
+
+colors = [
+    hex2rgb('212121');   % dark charcoal
+    % hex2rgb('4e418f');   % purple
+    hex2rgb('2bc1b4');   % teal
+    hex2rgb('c6c052');   % yellow-green
+];
+function rgb = hex2rgb(h)
+    h = strrep(h, '#', '');
+    rgb = [hex2dec(h(1:2)), hex2dec(h(3:4)), hex2dec(h(5:6))] / 255;
+end
+
+
 xlims = [datetime(2018,1,1) datetime(2020,01,02)];
+
 
 %% TEMPERATURE TILE
 ax1 = nexttile; hold on;
 
 for i = 1:length(target_depths)
-    plot(model_dates, s1.T(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
+    plot(model_dates, s1.T(closest_idx_mod(i), :), ls_model, 'LineWidth', 1.5, 'Color', colors(i,:));
     plot(obs_dates, obs_T(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
-    plot(model_dates, s1.Ts(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+    % plot(model_dates, s1.Ts(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
 
     % ylim(ax1, Tlims)
 end
@@ -119,9 +139,9 @@ grid off; box off;
 ax2 = nexttile; hold on;
 
 for i = 1:length(target_depths)
-    plot(model_dates, s1.S(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
+    plot(model_dates, s1.S(closest_idx_mod(i), :), ls_model, 'LineWidth', 1.5, 'Color', colors(i,:));
     plot(obs_dates, obs_S(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
-    plot(model_dates, s1.Ss(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+    % plot(model_dates, s1.Ss(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
 
     % ylim(ax2, Slims)
 end
@@ -134,36 +154,36 @@ ylabel('Salinity (PSU)');
 text(ax2, 0.01, 0.95, '(b)', 'Units','normalized', ...
     'FontWeight','bold','FontSize',12,'Color','black');
 
-%% DENSITY TILE
-ax3 = nexttile; hold on;
-
-for i = 1:length(target_depths)
-    plot(model_dates, s1.rho(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
-    plot(model_dates, s1.rhos(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
-
-    plot(obs_dates, obs_rho(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
-end
-ylabel('Density (kg m^{-3})');
-
-
-% Panel label
-text(ax1, 0.01, 0.95, '(c)', 'Units','normalized', ...
-    'FontWeight','bold','FontSize',12,'Color','black');
+% %% DENSITY TILE
+% ax3 = nexttile; hold on;
+% 
+% for i = 1:length(target_depths)
+%     plot(model_dates, s1.rho(closest_idx_mod(i), :), '--', 'LineWidth', 1.5, 'Color', colors(i,:));
+%     plot(model_dates, s1.rhos(closest_idx_mod(i), :), ':', 'LineWidth', 1.5, 'Color', colors(i,:));
+% 
+%     plot(obs_dates, obs_rho(closest_idx_obs(i), :), '-', 'LineWidth', 1.5, 'Color', colors(i,:));
+% end
+% ylabel('Density (kg m^{-3})');
+% 
+% 
+% % Panel label
+% text(ax1, 0.01, 0.95, '(c)', 'Units','normalized', ...
+%     'FontWeight','bold','FontSize',12,'Color','black');
 
 
 %% LEGEND (bottom tile)
 legendStrings = [];
-for i = 1:length(target_depths)
-    legendStrings{end+1} = sprintf('Model %d m', target_depths(i));
-    legendStrings{end+1} = sprintf('Obs %d m', target_depths(i));
-end
-% legend(ax3, legendStrings, 'Location', 'best'); % put legend in bottom tile
+% for i = 1:length(target_depths)
+%     legendStrings{end+1} = sprintf('Model %d m', target_depths(i));
+%     legendStrings{end+1} = sprintf('Obs %d m', target_depths(i));
+% end
+legend(ax2, legendStrings, 'Location', 'best'); % put legend in bottom tile
 
 
 %% Formatting
 
 % Array of axes
-axAll = [ax1, ax2, ax3];
+axAll = [ax1, ax2];
 
 % Set x-limits and monthly ticks for all axes
 startDate = datetime(2018,1,1);
@@ -182,11 +202,10 @@ end
 % axAll(end).XTickLabelRotation = 45;
 
 
-
 %% Create dummy lines for general legend
 % General legend handles
-hModel1 = plot(nan, nan, '--k', 'LineWidth', 1.5);   % Model Kb=1e-3
-hShelf = plot(nan, nan, ':k', 'LineWidth', 1.5);    % Shelf Kb=1e-4
+hModel1 = plot(nan, nan, 'k', 'LineWidth', 1.5, 'LineStyle',ls_model);   % Model Kb=1e-3
+% hShelf = plot(nan, nan, ':k', 'LineWidth', 1.5);    % Shelf Kb=1e-4
 
 hObs    = plot(nan, nan, '-k', 'LineWidth', 1.5);    % Observations
 
@@ -196,17 +215,20 @@ for i = 1:length(target_depths)
     hDepth(i) = plot(nan, nan, '-', 'Color', colors(i,:), 'LineWidth', 1.5);
 end
 
+% 
+% legendStrings = [      arrayfun(@(d) sprintf('%d m', d), target_depths, 'UniformOutput', false),  {'Observations', 'Model', ' Shelf' }
+% ];
+% legend(axAll(end), [hDepth', hObs, hModel1 , hShelf], legendStrings, 'Location', 'best', 'Box', false, 'NumColumns', 2);
 
-legendStrings = [      arrayfun(@(d) sprintf('%d m', d), target_depths, 'UniformOutput', false),  {'Observations', 'Model', ' Shelf' }
+legendStrings = [      arrayfun(@(d) sprintf('%d m', d), target_depths, 'UniformOutput', false),  {'Observations', 'Model', }
 ];
-legend(axAll(end), [hDepth', hObs, hModel1 , hShelf], legendStrings, 'Location', 'best', 'Box', false, 'NumColumns', 2);
+legend(axAll(end), [hDepth', hObs, hModel1], legendStrings, 'Location', 'best', 'Box', false, 'NumColumns', 2);
 
 %% SAVE FIGURE
-saveas(fig, fullfile(saveFolder_ts, ['Timeseries_comparison_T_S' savename '.png']));
-saveas(fig, fullfile(saveFolder_ts, ['Timeseries_comparison_T_S' savename '.pdf']));% Save PNG with controlled resolution
+% saveas(fig, fullfile(saveFolder_ts, ['Timeseries_comparison_T_S' savename '.png']));
+% saveas(fig, fullfile(saveFolder_ts, ['Timeseries_comparison_T_S' savename '.pdf']));% Save PNG with controlled resolution
 exportgraphics(fig, fullfile(saveFolder_ts, ...
-    ['Timeseries_comparison_T_S' savename '.png']), ...
-    'Resolution',300);
+    ['Timeseries_comparison_T_S' savename '.pdf']));
 t.Padding = 'compact';
 t.TileSpacing = 'compact';
 % Save PDF tightly cropped to the figure area

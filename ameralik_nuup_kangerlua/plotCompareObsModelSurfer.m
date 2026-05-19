@@ -25,7 +25,7 @@ switch target_var
     case 'rho'
         obs_data = Ameralik_obs.rho;
         mod_data = s.rho;
-        cbarLabel = 'Density (kg/m³)';
+        cbarLabel = 'Density (kg m^{-3})';
         cmap = cmocean('dense');
     otherwise
         error('target_var must be "T", "S", or "rho".');
@@ -134,6 +134,11 @@ set(ax2, 'XTick', tick_dates);
 
 datetick(ax1, 'x', 'mmm yyyy', 'keeplimits', 'keepticks');
 datetick(ax2, 'x', 'mmm yyyy', 'keeplimits', 'keepticks');
+
+set(ax1, 'XTickLabel',[], 'TickDir','out');
+set(ax2, 'TickDir','out');
+datetick(ax2, 'x', 'mmm yyyy', 'keeplimits', 'keepticks');
+
 % Remove grids
 grid(ax1,'off'); box(ax1,'off');
 grid(ax2,'off'); box(ax2,'off');

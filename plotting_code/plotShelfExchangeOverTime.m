@@ -1,4 +1,4 @@
-load('../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-03_C01e+04.mat')
+load('../ameralik_nuup_kangerlua/ameralik_combined_Kb1e-04_C01e+05.mat')
 
 s.t_date = datetime(s.t, 'ConvertFrom','datenum');
 

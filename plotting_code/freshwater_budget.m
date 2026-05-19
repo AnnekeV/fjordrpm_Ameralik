@@ -4,10 +4,9 @@ clear; close all;
 
 % load model output
 % load ../examples/example5_riverine_input.mat
-load ameralik_combined_Kb1e-03_C01e+05.mat
+load ameralik_combined_Kb1e-04_C01e+05.mat
 
 % define layers for budget (defining our box)
-layers = [20:20]; % [top layer:bottom layer]
 layers = find(abs(s.z) >= 50 & abs(s.z) < 110);
 % reference salinity
 Sref = 34;
