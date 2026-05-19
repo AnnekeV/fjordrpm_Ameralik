@@ -1,3 +1,60 @@
+% This script imports multiple simulations and compares CTD profiles 
+% for different, either with shelf profiles or with observations
+% Fig S1  in manuscript currently showing upper layer ctd profiles for
+% shelf and inner fjord and mulitple
+
+
+%% ----------------- Load simulations and observations -----------------
+
+sims = {
+    % load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
+    % load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
+    load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s,
+    };
+simNames = {
+    % 'Low mix - Low shelfX',
+    % 'Low mix - High shelfX',
+    % 'High mix - Low shelfX', 
+    % 'High mix - High shelfX',
+    %   'Very high mix - Low ShelfX',
+    'Very high mix - High ShelfX',
+    };
+
+% Load Ameralik observation structures
+saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
+load(fullfile(saveFolder,'Ameralik_AM5.mat'));
+load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
+
+
+%% ----------------- Plot: Compare obs vs multiple model runs -----------------
+
+% Optional: define tile layout [nRows nCols]
+tileShape = [3 6]; % adjust based on number of observation dates
+
+fig = plotCompareObsModelProfilesMultiple(AM5, sims, simNames, tileShape,[0,6 ],[ 25 34], [datetime(2019,5,6), datetime(2019,11,1)]) ;
+
+
+% Save figure
+folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
+saveFolder_ts = fullfile(folder_fig,'comparison_obs_model_CTD_all');
+base = fullfile(saveFolder_ts,'ObsModelShelfProfiles_comparison19');
+% savenameS = sprintf('%s_very_high_mixing_50m.png', base);
+
+
+% target size in inches and DPI
+width_in = 15;
+height_in = 12; 
+dpi = 300;
+
+fig.Units = 'inches';
+fig.Position(3:4) = [width_in height_in];
+
+% export with exact size
+% exportgraphics(fig, savenameS, Units="inches", Width=width_in, Height=height_in, Resolution=dpi)
+
 function fig = plotCompareObsModelProfilesMultiple(Ameralik_mean, sims, simNames, tileShape, xlimT, xlimS, timespan)
 % PLOTCOMPAREOBSMODELPROFILES Compare obs and multiple model runs per date.
 %
@@ -13,7 +70,8 @@ function fig = plotCompareObsModelProfilesMultiple(Ameralik_mean, sims, simNames
 %
 % OUTPUT:
 %   fig           - figure handle
-colors_ameralik;
+colors = colors_ameralik;
+simColors = colors.simColors;
 
 
 if nargin < 3 || isempty(simNames)
@@ -118,55 +176,3 @@ function idx = findClosestDate(dates, target)
 [~, idx] = min(abs(dates - target));
 end
 
-colors_ameralik;
-
-%% ----------------- Load simulations and observations -----------------
-
-sims = {
-    % load('ameralik_combined_Kb1e-05_C01e+04.mat', 's').s, 
-    % load('ameralik_combined_Kb1e-05_C01e+05.mat', 's').s, 
-    % load('ameralik_combined_Kb1e-04_C01e+04.mat', 's').s, 
-    load('ameralik_combined_Kb1e-04_C01e+05.mat', 's').s, 
-    % load('ameralik_combined_Kb1e-03_C01e+04.mat', 's').s, 
-    load('ameralik_combined_Kb1e-03_C01e+05.mat', 's').s,
-    };
-simNames = {
-    % 'Low mix - Low shelfX',
-    % 'Low mix - High shelfX',
-    % 'High mix - Low shelfX', 
-    'High mix - High shelfX',
-    %   'Very high mix - Low ShelfX',
-    'Very high mix - High ShelfX',
-    };
-
-% Load Ameralik observation structures
-saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
-load(fullfile(saveFolder,'Ameralik_AM5.mat'));
-load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
-
-
-%% ----------------- Plot: Compare obs vs multiple model runs -----------------
-
-% Optional: define tile layout [nRows nCols]
-tileShape = [3 6]; % adjust based on number of observation dates
-
-fig = plotCompareObsModelProfilesMultiple(AM5, sims, simNames, tileShape,[0,6 ],[ 25 34], [datetime(2019,5,6), datetime(2019,11,1)]) ;
-
-
-% Save figure
-folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
-saveFolder_ts = fullfile(folder_fig,'comparison_obs_model_CTD_all');
-base = fullfile(saveFolder_ts,'ObsModelShelfProfiles_comparison19');
-savenameS = sprintf('%s_very_high_mixing_50m.png', base);
-
-
-% target size in inches and DPI
-width_in = 15;
-height_in = 12; 
-dpi = 300;
-
-fig.Units = 'inches';
-fig.Position(3:4) = [width_in height_in];
-
-% export with exact size
-exportgraphics(fig, savenameS, Units="inches", Width=width_in, Height=height_in, Resolution=dpi)

@@ -1,12 +1,14 @@
 %% =========================================================
 %  MAIN SCRIPT
 %  Loads data, computes FW timeseries, statistics, and plots
+% Fig 9 in Manuscript on sensitivity
+% 19 May 2025
 %% =========================================================
 
-% --- Load data -----------------------------------------------------------
+% --- Load Observational data -----------------------------------------------------------
 saveFolder = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/data/interim';
 load(fullfile(saveFolder,'Ameralik_AM5.mat'));
-load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
+% load(fullfile(saveFolder,'Ameralik_mean_daily.mat'));
 
 % --- Simulations ---------------------------------------------------------
 sims = {
@@ -17,6 +19,7 @@ sims = {
     load('ameralik_combined_Kb1e-03_C01e+05.mat',          's').s,
     load('ameralik_combined_Kb1e-03_C01e+05_no_air_sea.mat','s').s,
     load('ameralik_combined_Kb1e-03_C01e+05_no_runoff.mat','s').s,
+    load('ameralik_combined_Kb1e-04_C01e+04.mat',          's').s,
     load('ameralik_combined_Kb1e-03_C01e+04.mat',          's').s,
 };
 
@@ -28,6 +31,7 @@ simNames = {
     'Very high mix - High Shelf Exchange',
     'Very high mix - High Shelf Exchange - No Air-Sea Heat Flux',
     'Very high mix - High Shelf Exchange - No Runoff',
+    'High mix - Low Shelf Exchange',
     'Very high mix - Low Shelf Exchange',
 };
 
@@ -43,13 +47,12 @@ folder_fig    = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ
 saveFolder_ts = fullfile(folder_fig, 'comparison_obs_model_timeseries');
 saveFolder_skill_metric = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/quantify_model_perfomance';
 
-% --- Step 1: compute all FW timeseries -----------------------------------
+% --- Step 1: compute all FW timeseries: interpolate daily -----------------------------------
 fw = computeFWtimeseries(AM5, sims, simNames, Sref, depth_ranges);
 metrics = computeFWmetrics(fw);
 
 % --- Step 2: plot timeseries as bar plots --------------------------------
 close all;
-% fig = plotFWcontentBar(fw, depth_ranges, 'FW Content Comparison');
 fig = plotFWtimeseries(fw, metrics, depth_ranges);
 
 % --- Step 3: metrics figures (tiled, grouped bars) -----------------------
@@ -62,7 +65,7 @@ savePath = fullfile(saveFolder_skill_metric, 'FW_skill_metrics.pdf');
 % exportgraphics(figM, savePath, 'ContentType', 'image');
 % fprintf('Figure saved to: %s\n', savePath);
 
-% --- Step 4: heatmap (kept as-is) ----------------------------------------
+% --- Step 4: heatmap with correlation and other things ----------------------------------------
 % figH = plotFWmetricsHeatmap(metrics, saveFolder_ts);
 
 
@@ -122,10 +125,10 @@ function fig = plotFWtimeseries(fw, metrics, depth_ranges)
 
     % ---- Line styles by mixing level ------------------------------------
     ls = struct();
-    ls.VHIGH = ':';
-    ls.HIGH  = '--';
-    ls.LOW   = '-';
-    ls.OBS   = '-';
+    ls.VHIGH = colors.ls.VHIGH;
+    ls.HIGH  = colors.ls.HIGH;
+    ls.LOW   = colors.ls.LOW;
+    ls.OBS   = colors.ls.OBS;
 
     function sty = getLS(simName)
         if contains(simName, 'Very high', 'IgnoreCase', true)
@@ -552,14 +555,6 @@ function fig = plotFWmetricsTiled(metrics)
             % Y-limits (shared per column)
             ylim(ax, ylims);
 
-            % % X-axis ticks: one per group
-            % set(ax, 'XTick', groupTickX, 'XTickLabel', groupLabels, ...
-            %         'XTickLabelRotation', 12, 'FontSize', 8, ...
-            %         'TickDir', 'out', 'Box', 'off', ...
-            %         'YGrid', 'on', 'GridAlpha', 0.18, 'GridLineStyle', ':');
-            % ax.XAxis.TickLength = [0 0];
-            % xlim(ax, [0.2, barSpecs(end).xPos + 0.8]);
-
             % X-axis ticks: one per bar (abbreviated labels only on bottom row)
             if k == nDepths
                 set(ax, 'XTick', bXPos, 'XTickLabel', {barSpecs.label}, ...
@@ -929,8 +924,8 @@ function figH = plotFWmetricsHeatmap(metrics, saveFolder)
 
     if nargin > 1 && ~isempty(saveFolder)
         savePath = fullfile(saveFolder, 'FW_metrics_heatmap.pdf');
-        exportgraphics(figH, savePath, 'ContentType','vector');
-        fprintf('Heatmap saved to: %s\n', savePath);
+        % exportgraphics(figH, savePath, 'ContentType','vector');
+        % fprintf('Heatmap saved to: %s\n', savePath);
     end
 end
 

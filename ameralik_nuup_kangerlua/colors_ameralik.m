@@ -8,7 +8,10 @@ fluxColors = parula(nFluxes);
 colors.fluxColors = fluxColors;
 
 
-colors.ls.VHIGH = ':';  colors.ls.HIGH = '--';  colors.ls.OBS = '-';
+colors.ls.VHIGH = ':';  
+colors.ls.HIGH = '--';  
+colors.ls.LOW = ".-";
+colors.ls.OBS = '-';
 
 colors.c_shelf_in  = [245, 100, 118]/255;
 colors.c_shelf_out = fluxColors(2,:);

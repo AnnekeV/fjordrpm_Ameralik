@@ -1,3 +1,6 @@
+% This script imports multiple simulations and compares them for differenT
+% runs
+
 function fig = plotCompareObsModelProfilesMultiple(Ameralik_mean, sims, simNames, tileShape, xlimT, xlimS)
 % PLOTCOMPAREOBSMODELPROFILES Compare obs and multiple model runs per date.
 %
@@ -133,10 +136,10 @@ close all;
 tileShape = [3 8]; % adjust based on number of observation dates
 
 fig = plotCompareObsModelProfilesMultiple(Ameralik_mean, sims, simNames, tileShape,[-0.5,5],[ 31 33.5]);
-
-% Save figure
-folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
-saveFolder_ts = fullfile(folder_fig,'comparison_obs_model_CTD_all');
-base = fullfile(saveFolder_ts,'ObsModelProfiles_comparison');
-savenameS = sprintf('%s.png', base);
-saveFigure(fig, savenameS, 12, 7);
+% 
+% % Save figure
+% folder_fig = '/Users/annek/Library/CloudStorage/OneDrive-SharedLibraries-NIOZ/PhD Anneke Vries - General/fjord_modelling_ameralik/figures/';
+% saveFolder_ts = fullfile(folder_fig,'comparison_obs_model_CTD_all');
+% base = fullfile(saveFolder_ts,'ObsModelProfiles_comparison');
+% savenameS = sprintf('%s.png', base);
+% saveFigure(fig, savenameS, 12, 7);
